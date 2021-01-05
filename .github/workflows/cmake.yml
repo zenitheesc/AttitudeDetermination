@@ -18,58 +18,54 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  name: ${{ matrix.name }}
-  runs-on: ${{ matrix.os }}
+  manual:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    env:
+      CTEST_OUTPUT_ON_FAILURE: ON
+      CTEST_PARALLEL_LEVEL: 2
+    strategy:
+      fail-fast: false
+      matrix:
+        # Github Actions requires a single row to be added to the build matrix.
+        # See https://help.github.com/en/articles/workflow-syntax-for-github-actions.
+        name: [
+          ubuntu-18.04-gcc-7,
+          ubuntu-latest-gcc-10,
+        ]
+        include:
+          - name: ubuntu-18.04-gcc-7
+            os: ubuntu-18.04
+            compiler: gcc
+            version: "7"
+            
+          - name: ubuntu-latest-gcc-10
+            os: ubuntu-latest
+            compiler: gcc
+            version: "10"
 
-  env:
-#     CMAKE_GENERATOR: Ninja
-    CTEST_OUTPUT_ON_FAILURE: ON
-    CTEST_PARALLEL_LEVEL: 2
-#     ACTIONS_ALLOW_UNSECURE_COMMANDS: true # because of the set-env calls
+    steps:
+      - uses: actions/checkout@v2
 
-  strategy:
-    fail-fast: false
-    matrix:
-      # Github Actions requires a single row to be added to the build matrix.
-      # See https://help.github.com/en/articles/workflow-syntax-for-github-actions.
-      name: [
-        ubuntu-18.04-gcc-7,
-        ubuntu-latest-gcc-10,
-      ]
-
-      include:
-        - name: ubuntu-18.04-gcc-7
-          os: ubuntu-18.04
-          compiler: gcc
-          version: "7"
-          
-        - name: ubuntu-latest-gcc-10
-          os: ubuntu-latest
-          compiler: gcc
-          version: "10"
-
-  steps:
-    - uses: actions/checkout@v1
-
-    - name: Install (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        echo "Running Job of gcc-${{matrix.version}} in ${{matrix.name}}
-        sudo apt-get install gcc-${{matrix.version}}
-          
-    - name: Build & Test Debug x64
-      run: |
-        mkdir build
-        cd build
-        cmake ..
-        cmake --build . --config Debug --target alglin-tests
-        cmake --build . --config Debug --target attdet-tests
-        ctest
-    - name: Build & Test Release x64
-      run: |
-        mkdir build
-        cd build
-        cmake ..
-        cmake --build . --config Release --target alglin-tests
-        cmake --build . --config Debug --target attdet-tests
-        ctest
+      - name: Install (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          echo "Running Job of gcc-${{matrix.version}} in ${{matrix.name}}
+          sudo apt-get install gcc-${{matrix.version}}
+            
+      - name: Build & Test Debug x64
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build . --config Debug --target alglin-tests
+          cmake --build . --config Debug --target attdet-tests
+          ctest
+      - name: Build & Test Release x64
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build . --config Release --target alglin-tests
+          cmake --build . --config Debug --target attdet-tests
+          ctest
