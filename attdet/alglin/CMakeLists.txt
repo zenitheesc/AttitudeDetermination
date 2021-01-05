@@ -5,7 +5,7 @@ project(libalglin VERSION 0.1.0)
 
 
 add_library(alglin INTERFACE)
-target_compile_features(alglin INTERFACE cxx_std_17)
+target_compile_features(alglin INTERFACE cxx_std_11)
 target_include_directories(alglin INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
 target_compile_options(alglin INTERFACE -Wall -Wextra -Wshadow -pedantic)
