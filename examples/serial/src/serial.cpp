@@ -71,8 +71,8 @@ template <int B = 255> struct SerialRead {
 };
 
 int main() {
-
-  constexpr Matrix3 convertMagAxis({
+  using namespace attdet;
+  const Matrix3 convertMagAxis({
       {0., -1., 0.}, {1., 0., 0.}, {0., 0., 1.}});
 
   std::regex data_regex(
@@ -88,14 +88,14 @@ int main() {
   // -0.4,0.3,9.9,  8.5,5.5,16.9
   // 0.3,0.2,9.9,   -5.9,-2.3,19.0
   // 0.4,0.4,9.9,   -20.4,-20.0,12.0
-  constexpr Vec3 m_ref({-20.4, -20.0, 12.0});
-  constexpr Vec3 a_ref({0.4, 0.4, 9.9});
+  const Vec3 m_ref({-20.4, -20.0, 12.0});
+  const Vec3 a_ref({0.4, 0.4, 9.9});
 
   auto mag_sensor = Sensor({0., 1., 0.}, alglin::normalize(m_ref), .40);
   auto acc_sensor =
       Sensor({0., 1., 0.}, alglin::normalize(convertMagAxis * a_ref), .60);
 
-  SerialRead serial("/dev/ttyUSB0", baud::b115200);
+  SerialRead<255> serial("/dev/ttyUSB0", baud::b115200);
   while (true) {
     std::string line = serial.readline();
     if (std::regex_match(line, s_data, data_regex)) {
