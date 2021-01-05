@@ -25,9 +25,9 @@
  * @brief Biblioteca de Determinação de Atitude
  * @version 0.1
  * @date Jan 2021
- * 
+ *
  * @copyright Copyright (c) 2021
- * 
+ *
  */
 #include <attdet.h>
 
@@ -137,17 +137,15 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
       break;
     }
   }
-  auto selected = [&distanceToSing, &candidateQuats](void) -> Quat {
-    int d = 0;
-    int idx = 0;
-    for (int i = 0; i < 4; i++) {
-      if (distanceToSing[i] > d) {
-        d = distanceToSing[i];
-        idx = i;
-      }
+  int d{};
+  int idx{};
+  for (int i = 0; i < 4; i++) {
+    if (distanceToSing[i] > d) {
+      d = distanceToSing[i];
+      idx = i;
     }
-    return candidateQuats[idx];
-  }();
+  }
+  auto selected = candidateQuats[idx];
   return alglin::normalize(selected);
 }
 
