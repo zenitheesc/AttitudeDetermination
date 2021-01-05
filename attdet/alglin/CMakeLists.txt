@@ -8,8 +8,11 @@ add_library(alglin INTERFACE)
 target_compile_features(alglin INTERFACE cxx_std_11)
 target_include_directories(alglin INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
-target_compile_options(alglin INTERFACE -Wall -Wextra -Wshadow -pedantic)
-
+target_compile_options(alglin INTERFACE
+     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+          -Wall -Wextra -Wshadow -pedantic >
+     $<$<CXX_COMPILER_ID:MSVC>:
+          /W4>)
 
 # TESTING
 Include(FetchContent)
