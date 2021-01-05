@@ -238,13 +238,10 @@ template <class T, int N, int M>
  * @brief SquareMatrix representa uma Matriz Quadrada NxN
  *
  */
-template <class T, int N> struct SquareMatrix : public GenericMatrix<T, N, N> {
 
-  CONSTEXPR_17 SquareMatrix(const GenericMatrix<T, N, N> &other) noexcept {
-    this->elements = other.data();
-  }
-  CONSTEXPR_17 SquareMatrix() = default;
-};
+template<class T, int N>
+using SquareMatrix = GenericMatrix<T,N,N>;
+
 
 /**
  * @brief Rejeita o calculo de determinantes de matrizes
