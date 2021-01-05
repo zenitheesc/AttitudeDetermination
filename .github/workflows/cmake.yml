@@ -50,7 +50,7 @@ jobs:
       - name: Install (Linux)
         if: runner.os == 'Linux'
         run: |
-          echo "Running Job of gcc-${{matrix.version}} in ${{matrix.name}}
+          echo "Running Job of gcc-${{matrix.version}} in ${{matrix.name}}"
           sudo apt-get install gcc-${{matrix.version}}
             
       - name: Build & Test Debug x64
