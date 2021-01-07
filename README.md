@@ -2,7 +2,7 @@
 
 ## Conteúdo:
  - **attdet** - Biblioteca para Determinação de Atitude usando métodos determinísticos. 
- - **alglin** - Biblioteca de Álgebra Linear.
+ - **attdet/alglin** - Biblioteca de Álgebra Linear.
  - **examples/quest** - Demo do Algoritmo QUaternion ESTimator da biblioteca.
  - **examples/serial** - Demo do QUEST com captura de dados via serial.
 
