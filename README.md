@@ -20,9 +20,11 @@ Onde a `CONFIG` pode ser `Debug`, `Release`, `MinSizeRel` e `TARGET` é o subpro
 A biblioteca `alglin` é header-only e por isso não é um target direto, diferente da `attdet` que compila como biblioteca estática.
 
 ## TODO:
-- [ ] Remover completamete uso da STL
-- [ ] Compilar usando toolchain do STM32
+- [ ] Remover completamete uso da STL 
+- [x] Compilar usando toolchain do STM32 (impacto*: ~10KB)
 - [ ] Explicitar contratos de funções críticas
+
+Compilando em Release, com C++14 copiando diretamente os arquivos para o projeto, sem compilar a `libattdet.a` separadamente.  
 
 ## Saiba Mais:
 Temos um texto sobre Determinação de Atitude e a história do algoritmo QUEST em nosso [Medium](https://zenith-eesc.medium.com/determina%C3%A7%C3%A3o-de-atitude-62d5e716631a)
