@@ -29,15 +29,20 @@
  * @copyright Copyright (c) 2021
  *
  */
+#include <algorithm>
+#include <numeric>
 #include <attdet.h>
+
+#define QUEST_ALT 0
 
 namespace attdet {
 
+
 Matrix3 block_matrix(const Vec3 &a, const Vec3 &b, const Vec3 &c) {
   Matrix3 out{};
-  out[0] = static_cast<std::array<double, 3>>(a);
-  out[1] = static_cast<std::array<double, 3>>(b);
-  out[2] = static_cast<std::array<double, 3>>(c);
+  out[0] = static_cast<std::array<float, 3>>(a);
+  out[1] = static_cast<std::array<float, 3>>(b);
+  out[2] = static_cast<std::array<float, 3>>(c);
   return out;
 }
 
@@ -48,16 +53,17 @@ Matrix3 block_matrix(const Vec3 &a, const Vec3 &b, const Vec3 &c) {
  * @param sensors List of Sensor() with at least 2 Sensors
  * @return Quat  Attitude as Unit Quaternion
  */
+#if QUEST_ALT
 Quat quest(const std::initializer_list<Sensor> &sensors) {
   if (sensors.size() < 2) {
     return {};
   }
   std::array<Quat, 4> candidateQuats{};
-  std::array<double, 4> distanceToSing{};
+  std::array<float, 4> distanceToSing{};
   constexpr std::array<Rotations, 4> rotations = {
       Rotations::X, Rotations::Y, Rotations::Z, Rotations::None};
 
-  double lambda{};
+  float lambda{};
   Matrix3 B_{};
   for (const auto &sensor : sensors) {
     B_ = B_ + (sensor.weight * alglin::outer(sensor.measure, sensor.reference));
@@ -101,16 +107,16 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
     const auto c = delta + (Z * S * ZT)[0][0];
     const auto d = (Z * (S * S) * ZT)[0][0];
 
-    auto f = [a, b, c, d, sigma](const double t) {
+    auto f = [a, b, c, d, sigma](const float t) {
       return (((1 * t * t) - (a + b)) * t - c) * t + (a * b + c * sigma - d);
     };
-    auto df = [a, b, c](const double t) {
+    auto df = [a, b, c](const float t) {
       return (4 * t * t - 2 * (a + b)) * t - c;
     };
 
     lambda -= f(lambda) / df(lambda);
 
-    CONSTEXPR_17 auto identity = alglin::eye<double, 3>();
+    CONSTEXPR_17 auto identity = alglin::eye<float, 3>();
     const Matrix3 Y = ((lambda + sigma) * identity) - S;
     const Vec3 crp_ = alglin::transpose(alglin::inverse(Y) * ZT);
     const auto w = 1 / (std::sqrt((crp_ * alglin::transpose(crp_))[0][0]));
@@ -148,6 +154,93 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
   auto selected = candidateQuats[idx];
   return alglin::normalize(selected);
 }
+#else
+/**
+ * @brief QUEST algorithm implementation.
+ * Computes the attitude given sensor body and inertial values.
+ * "original-like" implementation
+ *
+ * @param sensors List of Sensor()
+ * @return Quat  Attitude as Unit Quaternion
+ */
+namespace {
+Quat quest_unsafe(const Matrix3 &B, float lambda) {
+  const Matrix3 S = B + alglin::transpose(B);
+  const auto sigma = alglin::trace(B);
+  const Vec3 Z({(B[1][2] - B[2][1]), (B[2][0] - B[0][2]), (B[0][1] - B[1][0])});
+
+  const auto k = alglin::trace(alglin::adjugate(S));
+  const auto delta = alglin::det(S);
+  const auto ZT = alglin::transpose(Z);
+  const auto a = (sigma * sigma) - k;
+  const auto b = sigma * sigma + (Z * ZT)[0][0];
+  const auto c = delta + (Z * S * ZT)[0][0];
+  const auto d = (Z * (S * S) * ZT)[0][0];
+
+  auto f = [a, b, c, d, sigma](const float t) {
+    return (((1 * t * t) - (a + b)) * t - c) * t + (a * b + c * sigma - d);
+  };
+  auto df = [a, b, c](const float t) {
+    return (4 * t * t - 2 * (a + b)) * t - c;
+  };
+
+  lambda -= f(lambda) / df(lambda);
+
+  const auto identity = alglin::eye<float, 3>();
+  const Matrix3 Y = ((lambda + sigma) * identity) - S;
+
+  const Vec3 crp_ = alglin::transpose(alglin::inverse(Y) * ZT);
+
+  const auto w = 1 / (std::sqrt((crp_ * alglin::transpose(crp_))[0][0]));
+  const Quat q({w * crp_[0], w * crp_[1], w * crp_[2], w});
+  return alglin::normalize(q) * alglin::det(Y);
+}
+}
+Quat quest(const std::initializer_list<Sensor> &sensors) {
+
+  const float lambda = std::accumulate(
+      sensors.begin(), sensors.end(), 0.f,
+      [](const float prev, const Sensor &s) { return prev + s.weight; });
+
+  Matrix3 B{};
+  std::for_each(sensors.begin(), sensors.end(), [&B](const auto sensor) {
+    B = B + (sensor.weight * alglin::outer(sensor.measure, sensor.reference));
+  });
+
+  auto rotate = [&B](int n, int m) -> void {
+    for (int i = 0; i < 3; ++i) {
+      B[i][n] = -B[i][n];
+      B[i][m] = -B[i][m];
+    }
+  };
+
+  std::array<Quat, 4> candidateQuats{};
+
+  candidateQuats[0] = quest_unsafe(B, lambda);
+
+  rotate(1, 2);
+  const auto qX = quest_unsafe(B, lambda);
+  candidateQuats[1] = {qX[3], -qX[2], qX[1], -qX[0]};
+
+  rotate(0, 1);
+  const auto qY = quest_unsafe(B, lambda);
+  candidateQuats[2] = {qY[2], qY[3], -qY[0], -qY[1]};
+
+  rotate(1, 2);
+  const auto qZ = quest_unsafe(B, lambda);
+  candidateQuats[3] = {-qZ[1], qZ[0], qZ[3], -qZ[2]};
+
+  const auto selected = [&candidateQuats]() -> Quat {
+    const Quat x = *std::max_element(
+        candidateQuats.begin(), candidateQuats.end(),
+        [](const Quat &a, const Quat &b) { return a * a < b * b; });
+    return alglin::normalize(x);
+  }();
+
+  return selected;
+}
+
+#endif
 
 Matrix3 triad(const std::array<Sensor, 2> &sensors) {
 
@@ -164,7 +257,7 @@ Matrix3 triad(const std::array<Sensor, 2> &sensors) {
 }
 
 Vec3 DCM2Euler(const Matrix3 &A) {
-  constexpr auto r = 180.0 / 3.141592;
+  constexpr auto r = static_cast<float>(180.0 / 3.141592);
   const auto theta = std::asin(A[0][2]);
   const auto psi = std::acos(A[0][0] / std::cos(theta));
   const auto phi = std::asin(-A[1][2] / (std::cos(theta)));
@@ -172,12 +265,12 @@ Vec3 DCM2Euler(const Matrix3 &A) {
 }
 
 Vec3 Quat2Euler(const Quat &q) {
-  constexpr auto r = 180.0 / 3.141592;
-  const auto phi = r * std::atan2(2.0 * (q[3] * q[0] - q[1] * q[2]),
-                                  1 - 2.0 * (q[0] * q[0] + q[1] * q[1]));
-  const auto tetha = r * std::asin(2.0 * (q[3] * q[1] + q[2] * q[0]));
-  const auto psi = r * std::atan2(2.0 * (q[3] * q[2] - q[0] * q[1]),
-                                  1 - 2.0 * (q[1] * q[1] + q[2] * q[2]));
+  constexpr auto r = static_cast<float>(180.0 / 3.141592);
+  const auto phi = r * std::atan2(2.0f * (q[3] * q[0] - q[1] * q[2]),
+                                  1.f - 2.0f * (q[0] * q[0] + q[1] * q[1]));
+  const auto tetha = r * std::asin(2.0f * (q[3] * q[1] + q[2] * q[0]));
+  const auto psi = r * std::atan2(2.0f * (q[3] * q[2] - q[0] * q[1]),
+                                  1.f - 2.0f * (q[1] * q[1] + q[2] * q[2]));
 
   return {phi, tetha, psi};
 }
