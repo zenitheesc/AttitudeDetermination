@@ -30,19 +30,18 @@
  *
  */
 #include <algorithm>
-#include <numeric>
 #include <attdet.h>
+#include <numeric>
 
-#define QUEST_ALT 0
+#define QUEST_ALT 1
 
 namespace attdet {
 
-
 Matrix3 block_matrix(const Vec3 &a, const Vec3 &b, const Vec3 &c) {
   Matrix3 out{};
-  out[0] = static_cast<std::array<float, 3>>(a);
-  out[1] = static_cast<std::array<float, 3>>(b);
-  out[2] = static_cast<std::array<float, 3>>(c);
+  out[0] = static_cast<std::array<double, 3>>(a);
+  out[1] = static_cast<std::array<double, 3>>(b);
+  out[2] = static_cast<std::array<double, 3>>(c);
   return out;
 }
 
@@ -53,17 +52,17 @@ Matrix3 block_matrix(const Vec3 &a, const Vec3 &b, const Vec3 &c) {
  * @param sensors List of Sensor() with at least 2 Sensors
  * @return Quat  Attitude as Unit Quaternion
  */
-#if QUEST_ALT
+#if !QUEST_ALT
 Quat quest(const std::initializer_list<Sensor> &sensors) {
   if (sensors.size() < 2) {
     return {};
   }
   std::array<Quat, 4> candidateQuats{};
-  std::array<float, 4> distanceToSing{};
+  std::array<double, 4> distanceToSing{};
   constexpr std::array<Rotations, 4> rotations = {
       Rotations::X, Rotations::Y, Rotations::Z, Rotations::None};
 
-  float lambda{};
+  double lambda{};
   Matrix3 B_{};
   for (const auto &sensor : sensors) {
     B_ = B_ + (sensor.weight * alglin::outer(sensor.measure, sensor.reference));
@@ -107,16 +106,16 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
     const auto c = delta + (Z * S * ZT)[0][0];
     const auto d = (Z * (S * S) * ZT)[0][0];
 
-    auto f = [a, b, c, d, sigma](const float t) {
+    auto f = [a, b, c, d, sigma](const double t) {
       return (((1 * t * t) - (a + b)) * t - c) * t + (a * b + c * sigma - d);
     };
-    auto df = [a, b, c](const float t) {
+    auto df = [a, b, c](const double t) {
       return (4 * t * t - 2 * (a + b)) * t - c;
     };
 
     lambda -= f(lambda) / df(lambda);
 
-    CONSTEXPR_17 auto identity = alglin::eye<float, 3>();
+    CONSTEXPR_17 auto identity = alglin::eye<double, 3>();
     const Matrix3 Y = ((lambda + sigma) * identity) - S;
     const Vec3 crp_ = alglin::transpose(alglin::inverse(Y) * ZT);
     const auto w = 1 / (std::sqrt((crp_ * alglin::transpose(crp_))[0][0]));
@@ -143,7 +142,7 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
       break;
     }
   }
-  int d{};
+  double d{};
   int idx{};
   for (int i = 0; i < 4; i++) {
     if (distanceToSing[i] > d) {
@@ -164,7 +163,7 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
  * @return Quat  Attitude as Unit Quaternion
  */
 namespace {
-Quat quest_unsafe(const Matrix3 &B, float lambda) {
+Quat quest_unsafe(const Matrix3 &B, double lambda) {
   const Matrix3 S = B + alglin::transpose(B);
   const auto sigma = alglin::trace(B);
   const Vec3 Z({(B[1][2] - B[2][1]), (B[2][0] - B[0][2]), (B[0][1] - B[1][0])});
@@ -177,16 +176,16 @@ Quat quest_unsafe(const Matrix3 &B, float lambda) {
   const auto c = delta + (Z * S * ZT)[0][0];
   const auto d = (Z * (S * S) * ZT)[0][0];
 
-  auto f = [a, b, c, d, sigma](const float t) {
+  auto f = [a, b, c, d, sigma](const double t) {
     return (((1 * t * t) - (a + b)) * t - c) * t + (a * b + c * sigma - d);
   };
-  auto df = [a, b, c](const float t) {
+  auto df = [a, b, c](const double t) {
     return (4 * t * t - 2 * (a + b)) * t - c;
   };
 
   lambda -= f(lambda) / df(lambda);
 
-  const auto identity = alglin::eye<float, 3>();
+  const auto identity = alglin::eye<double, 3>();
   const Matrix3 Y = ((lambda + sigma) * identity) - S;
 
   const Vec3 crp_ = alglin::transpose(alglin::inverse(Y) * ZT);
@@ -195,22 +194,22 @@ Quat quest_unsafe(const Matrix3 &B, float lambda) {
   const Quat q({w * crp_[0], w * crp_[1], w * crp_[2], w});
   return alglin::normalize(q) * alglin::det(Y);
 }
-}
+} // namespace
 Quat quest(const std::initializer_list<Sensor> &sensors) {
 
-  const float lambda = std::accumulate(
+  const double lambda = std::accumulate(
       sensors.begin(), sensors.end(), 0.f,
-      [](const float prev, const Sensor &s) { return prev + s.weight; });
+      [](const double prev, const Sensor &s) { return prev + s.weight; });
 
   Matrix3 B{};
   std::for_each(sensors.begin(), sensors.end(), [&B](const auto sensor) {
     B = B + (sensor.weight * alglin::outer(sensor.measure, sensor.reference));
   });
 
-  auto rotate = [&B](int n, int m) -> void {
+  auto rotate = [](Matrix3 &M, int n, int m) -> void {
     for (int i = 0; i < 3; ++i) {
-      B[i][n] = -B[i][n];
-      B[i][m] = -B[i][m];
+      M[i][n] = -M[i][n];
+      M[i][m] = -M[i][m];
     }
   };
 
@@ -218,15 +217,15 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
 
   candidateQuats[0] = quest_unsafe(B, lambda);
 
-  rotate(1, 2);
+  rotate(B, 1, 2);
   const auto qX = quest_unsafe(B, lambda);
   candidateQuats[1] = {qX[3], -qX[2], qX[1], -qX[0]};
 
-  rotate(0, 1);
+  rotate(B, 0, 1);
   const auto qY = quest_unsafe(B, lambda);
   candidateQuats[2] = {qY[2], qY[3], -qY[0], -qY[1]};
 
-  rotate(1, 2);
+  rotate(B, 1, 2);
   const auto qZ = quest_unsafe(B, lambda);
   candidateQuats[3] = {-qZ[1], qZ[0], qZ[3], -qZ[2]};
 
@@ -257,7 +256,7 @@ Matrix3 triad(const std::array<Sensor, 2> &sensors) {
 }
 
 Vec3 DCM2Euler(const Matrix3 &A) {
-  constexpr auto r = static_cast<float>(180.0 / 3.141592);
+  constexpr auto r = static_cast<double>(180.0 / 3.141592);
   const auto theta = std::asin(A[0][2]);
   const auto psi = std::acos(A[0][0] / std::cos(theta));
   const auto phi = std::asin(-A[1][2] / (std::cos(theta)));
@@ -265,7 +264,7 @@ Vec3 DCM2Euler(const Matrix3 &A) {
 }
 
 Vec3 Quat2Euler(const Quat &q) {
-  constexpr auto r = static_cast<float>(180.0 / 3.141592);
+  constexpr auto r = static_cast<double>(180.0 / 3.141592);
   const auto phi = r * std::atan2(2.0f * (q[3] * q[0] - q[1] * q[2]),
                                   1.f - 2.0f * (q[0] * q[0] + q[1] * q[1]));
   const auto tetha = r * std::asin(2.0f * (q[3] * q[1] + q[2] * q[0]));
