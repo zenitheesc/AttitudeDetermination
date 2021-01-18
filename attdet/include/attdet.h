@@ -21,16 +21,15 @@ struct Sensor {
   double weight{};
 };
 
- Matrix3 block_matrix(const Vec3 &a, const Vec3 &b, const Vec3 &c);
+Matrix3 block_matrix(const Vec3 &a, const Vec3 &b, const Vec3 &c);
 
 enum class Rotations { X, Y, Z, None };
 Quat quest(const std::initializer_list<Sensor> &sensors);
 
- Matrix3 triad(const std::array<Sensor, 2> &sensors);
+Matrix3 triad(const std::array<Sensor, 2> &sensors);
 
 Vec3 DCM2Euler(const Matrix3 &A);
 Vec3 Quat2Euler(const Quat &q);
 } // namespace attdet
-
 
 #endif // _ATT_DET_H_

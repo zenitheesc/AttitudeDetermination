@@ -83,6 +83,7 @@
  ***/
 
 namespace alglin {
+#if USE_FAST_INVSQRT
 namespace {
 
 template <class U, class T> U bit_cast(T t) {
@@ -102,6 +103,7 @@ float fast_invsqrt(float x) {
 }
 
 } // namespace
+#endif
 /**
   ____                      _      __  __       _        _
  / ___| ___ _ __   ___ _ __(_) ___|  \/  | __ _| |_ _ __(_)_  __
@@ -368,11 +370,15 @@ adjugate(const SquareMatrix<T, 3> &M) {
         m[u][v++] = M[r][c];
       }
       ++u;
-      v = 0;
+      v = 0; 
     }
-    return (1 + ((i + j) % 2 != 0) * (-2)) * det(m);
+    
+    if ((i + j) % 2)
+      return -det(m);
+    else
+      return det(m);
   };
-  auto out = M;
+  SquareMatrix<T, 3> out{};
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 3; ++j) {
       out[i][j] = cofactor(i, j);
@@ -492,11 +498,11 @@ template <class T, int N>
 template <class T, int N>
 [[nodiscard]] Vector<T, N> normalize(const Vector<T, N> &v) {
 
-  #if USE_FAST_INVSQRT
-    const auto n = fast_invsqrt(v*v);
-  #else
-    const double n = 1 / std::sqrt(v * v);
-  #endif
+#if USE_FAST_INVSQRT
+  const auto n = fast_invsqrt(v * v);
+#else
+  const double n = 1 / std::sqrt(v * v);
+#endif
   auto out = v;
   for (int i = 0; i < N; ++i) {
     out[i] = v[i] * n;
