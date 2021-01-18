@@ -28,6 +28,8 @@
 #include <initializer_list>
 #include <ostream>
 
+#include <cstring>
+
 #if !defined(ALGLIN_PRECISION)
 // Used in 'operator==' in floating-point comparison
 #define ALGLIN_PRECISION (1E-14)
@@ -39,6 +41,8 @@
 #else
 #define CONSTEXPR_17
 #endif
+
+#define USE_FAST_INVSQRT 0
 /***
   **     ___    __      __    _         __
   **    /   |  / /___ _/ /   (_)___    / /_  ____  ____
@@ -79,7 +83,25 @@
  ***/
 
 namespace alglin {
+namespace {
 
+template <class U, class T> U bit_cast(T t) {
+  static_assert(sizeof(T) == sizeof(U), "");
+  static_assert(std::is_trivially_copyable<T>::value, "");
+  static_assert(std::is_trivially_copyable<U>::value, "");
+  U u{};
+  std::memcpy(&u, &t, sizeof(T));
+  return u;
+}
+
+float fast_invsqrt(float x) {
+  int i = bit_cast<int>(x);
+  i = 0x5f3759df - (i >> 1);
+  float y = bit_cast<float>(i);
+  return y * (1.5F - 0.5F * x * y * y);
+}
+
+} // namespace
 /**
   ____                      _      __  __       _        _
  / ___| ___ _ __   ___ _ __(_) ___|  \/  | __ _| |_ _ __(_)_  __
@@ -239,9 +261,7 @@ template <class T, int N, int M>
  *
  */
 
-template<class T, int N>
-using SquareMatrix = GenericMatrix<T,N,N>;
-
+template <class T, int N> using SquareMatrix = GenericMatrix<T, N, N>;
 
 /**
  * @brief Rejeita o calculo de determinantes de matrizes
@@ -472,7 +492,11 @@ template <class T, int N>
 template <class T, int N>
 [[nodiscard]] Vector<T, N> normalize(const Vector<T, N> &v) {
 
-  const double n = 1 / std::sqrt(v * v);
+  #if USE_FAST_INVSQRT
+    const auto n = fast_invsqrt(v*v);
+  #else
+    const double n = 1 / std::sqrt(v * v);
+  #endif
   auto out = v;
   for (int i = 0; i < N; ++i) {
     out[i] = v[i] * n;
