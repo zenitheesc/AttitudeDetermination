@@ -42,7 +42,7 @@
 #define CONSTEXPR_17
 #endif
 
-#define USE_FAST_INVSQRT 0
+// #define USE_FAST_INVSQRT 0 // Agora definido no CMakeCache
 /***
   **     ___    __      __    _         __
   **    /   |  / /___ _/ /   (_)___    / /_  ____  ____

@@ -8,6 +8,14 @@ add_library(alglin INTERFACE)
 target_compile_features(alglin INTERFACE cxx_std_11)
 target_include_directories(alglin INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
+set(ALGLIN_USE_FAST_INVSQRT OFF CACHE BOOL "Use FastInvSqrt Algorithm")
+option(ALGLIN_USE_FAST_INVSQRT  "Use FastInvSqrt Algorithm") 
+
+if(ALGLIN_USE_FAST_INVSQRT)
+     target_compile_definitions(alglin INTERFACE USE_FAST_INVSQRT=1)
+else()
+     target_compile_definitions(alglin INTERFACE USE_FAST_INVSQRT=0)
+endif()
 target_compile_options(alglin INTERFACE
      $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
           -Wall -Wextra -Wshadow -pedantic >
