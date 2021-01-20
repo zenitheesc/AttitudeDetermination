@@ -370,9 +370,9 @@ adjugate(const SquareMatrix<T, 3> &M) {
         m[u][v++] = M[r][c];
       }
       ++u;
-      v = 0; 
+      v = 0;
     }
-    
+
     if ((i + j) % 2)
       return -det(m);
     else
@@ -397,11 +397,12 @@ template <class T>
 [[nodiscard]] CONSTEXPR_17 SquareMatrix<T, 3>
 inverse(const SquareMatrix<T, 3> &M) {
   const auto d = det(M);
-  auto A = M;
-  if (d) {
-    const auto a = 1 / d;
-    A = transpose(adjugate(M)) * a;
+  if (d == static_cast<T>(0)) {
+    return {};
   }
+
+  const auto a = 1 / d;
+  auto A = transpose(adjugate(M)) * a;
   return A;
 }
 
