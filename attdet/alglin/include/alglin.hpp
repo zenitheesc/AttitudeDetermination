@@ -87,9 +87,9 @@ namespace alglin {
 namespace {
 
 template <class U, class T> U bit_cast(T t) {
-  static_assert(sizeof(T) == sizeof(U), "");
-  static_assert(std::is_trivially_copyable<T>::value, "");
-  static_assert(std::is_trivially_copyable<U>::value, "");
+  static_assert(sizeof(T) == sizeof(U), "Otherwise is undefined behavior");
+  static_assert(std::is_trivially_copyable<T>::value, "Needed for memcpy ");
+  static_assert(std::is_trivially_copyable<U>::value, "Needed for memcpy");
   U u{};
   std::memcpy(&u, &t, sizeof(T));
   return u;
@@ -99,7 +99,9 @@ float fast_invsqrt(float x) {
   int i = bit_cast<int>(x);
   i = 0x5f3759df - (i >> 1);
   float y = bit_cast<float>(i);
-  return y * (1.5F - 0.5F * x * y * y);
+  y = y * (1.5F - 0.5F * x * y * y);
+  y = y * (1.5F - 0.5F * x * y * y);
+  return y;
 }
 
 } // namespace
@@ -122,7 +124,7 @@ protected:
 public:
   // Somente usada nos testes
   CONSTEXPR_17
-  GenericMatrix(std::initializer_list<std::initializer_list<T>> &&l) {
+  GenericMatrix(std::initializer_list<std::initializer_list<T>> l) {
     auto row_it = this->elements.begin();
     for (auto &&i : l) {
       auto col_it = (*row_it).begin();
@@ -300,6 +302,19 @@ template <class T>
           A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]));
 }
 
+// - 48 bytes
+template<class T, int N>
+[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> transpose(const SquareMatrix<T, N>& A){
+  auto out = A;
+  for (int  i = 0; i < N; ++i) {
+        for (int  j = 0; j < i; ++j) {
+            std::swap(out[i][j], out[j][i]);
+        }
+    }
+    return out;
+}
+
+
 /**
  * @brief Rejeita o calculo de inversos de matrizes
  * maiores que 3x3. Não compila.
@@ -422,7 +437,7 @@ template <typename T, int N> struct Vector : public GenericMatrix<T, 1, N> {
     this->elements = other.data();
   }
 
-  CONSTEXPR_17 Vector(const std::initializer_list<T> &&l) noexcept {
+  CONSTEXPR_17 Vector(std::initializer_list<T> l) noexcept {
     auto it = this->elements[0].begin();
     for (auto &&i : l) {
       *it++ = i;
