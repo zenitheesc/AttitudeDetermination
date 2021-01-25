@@ -1,5 +1,5 @@
 # Attitude Determination
-
+![Manual workflow](https://github.com/zenitheesc/AttitudeDetermination/workflows/Manual%20workflow/badge.svg)
 ## Conteúdo:
  - **attdet** - Biblioteca para Determinação de Atitude usando métodos determinísticos. 
  - **attdet/alglin** - Biblioteca de Álgebra Linear.
