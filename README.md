@@ -5,9 +5,10 @@
  - **attdet/alglin** - Biblioteca de Álgebra Linear.
  - **examples/quest** - Demo do Algoritmo QUaternion ESTimator da biblioteca.
  - **examples/serial** - Demo do QUEST com captura de dados via serial.
+ - **misc** - Implementação em Python
 
 ## Compilação:
-Ambas bibliotecas fazem uso de Templates e opcionalmente de `constexpr` logo um compilador com C++11 é necessário. Caso queira `constexpr` modifique o `attdet/alglin/CMakeLists.txt` e troque o `cxx_std_11` para 17. Então use o CMake:
+Ambas bibliotecas fazem uso de `std::array` e `std::initializer_list`, logo um compilador com C++11 é necessário. Caso queira `constexpr` modifique o `attdet/alglin/CMakeLists.txt` e troque o `cxx_std_11` para 17. Então use o CMake:
 
 ```shell
 mkdir build
@@ -20,7 +21,6 @@ Onde a `CONFIG` pode ser `Debug`, `Release`, `MinSizeRel` e `TARGET` é o subpro
 A biblioteca `alglin` é header-only e por isso não é um target direto, diferente da `attdet` que compila como biblioteca estática.
 
 ## TODO:
-- [ ] Remover completamete uso da STL 
 - [x] Compilar usando toolchain do STM32 (impacto*: ~6KB)
 - [ ] Explicitar contratos de funções críticas
 
