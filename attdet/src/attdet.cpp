@@ -30,7 +30,7 @@
  *
  */
 #include <algorithm>
-#include <attdet.h>
+#include <attdet/attdet.h>
 #include <numeric>
 
 #define QUEST_ALT 0

@@ -24,7 +24,7 @@
 #define ALGLIN_H_
 // #include <array>
 #include <cmath>
-#include <array.hpp> // alglin::array
+#include <alglin/array.hpp> // alglin::array
 // Convenience
 #include <initializer_list>
 #include <ostream>

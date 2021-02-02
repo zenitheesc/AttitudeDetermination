@@ -1,4 +1,4 @@
-#include <alglin.hpp>
+#include <alglin/alglin.hpp>
 
 #include <catch2/catch.hpp>
 TEST_CASE("A * A^-1  = I") {

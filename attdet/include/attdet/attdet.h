@@ -1,8 +1,8 @@
 #if !defined(_ATT_DET_H_)
 #define _ATT_DET_H_
 #define ALGLIN_PRECISION (1E-6)
-#include <alglin.hpp>
-#include <array.hpp>
+#include <alglin/alglin.hpp>
+#include <alglin/array.hpp>
 #include <array>
 #include <initializer_list>
 namespace attdet {
