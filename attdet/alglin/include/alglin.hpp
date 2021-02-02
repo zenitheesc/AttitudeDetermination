@@ -22,8 +22,9 @@
 
 #ifndef ALGLIN_H_
 #define ALGLIN_H_
-#include <array>
+// #include <array>
 #include <cmath>
+#include <array.hpp> // alglin::array
 // Convenience
 #include <initializer_list>
 #include <ostream>
@@ -119,7 +120,7 @@ float fast_invsqrt(float x) {
  */
 template <typename T, int N, int M> struct GenericMatrix {
 protected:
-  std::array<std::array<T, M>, N> elements{};
+  alglin::array<alglin::array<T, M>, N> elements{};
 
 public:
   // Somente usada nos testes
@@ -151,9 +152,9 @@ public:
   operator-(const GenericMatrix<T, N, M> &rhs) const {
     return (*this + (static_cast<T>(-1) * rhs));
   }
-  CONSTEXPR_17 std::array<T, M> operator[](int i) const { return elements[i]; }
-  CONSTEXPR_17 std::array<T, M> &operator[](int i) { return elements[i]; }
-  CONSTEXPR_17 std::array<std::array<T, M>, N> data() const { return elements; }
+  CONSTEXPR_17 alglin::array<T, M> operator[](int i) const { return elements[i]; }
+  CONSTEXPR_17 alglin::array<T, M> &operator[](int i) { return elements[i]; }
+  CONSTEXPR_17 alglin::array<alglin::array<T, M>, N> data() const { return elements; }
 };
 
 /***
@@ -444,7 +445,7 @@ template <typename T, int N> struct Vector : public GenericMatrix<T, 1, N> {
     }
   }
 
-  CONSTEXPR_17 operator std::array<T, N>() const { return this->elements[0]; }
+  CONSTEXPR_17 operator alglin::array<T, N>() const { return this->elements[0]; }
 
   CONSTEXPR_17 Vector() = default;
   CONSTEXPR_17 T operator[](int i) const { return this->elements[0][i]; }

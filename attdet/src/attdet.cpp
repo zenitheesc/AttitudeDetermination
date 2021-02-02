@@ -33,15 +33,15 @@
 #include <attdet.h>
 #include <numeric>
 
-#define QUEST_ALT 1
+#define QUEST_ALT 0
 
 namespace attdet {
 
 Matrix3 block_matrix(const Vec3 &a, const Vec3 &b, const Vec3 &c) {
   Matrix3 out{};
-  out[0] = static_cast<std::array<double, 3>>(a);
-  out[1] = static_cast<std::array<double, 3>>(b);
-  out[2] = static_cast<std::array<double, 3>>(c);
+  out[0] = static_cast<alglin::array<double, 3>>(a);
+  out[1] = static_cast<alglin::array<double, 3>>(b);
+  out[2] = static_cast<alglin::array<double, 3>>(c);
   return out;
 }
 
@@ -57,9 +57,9 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
   if (sensors.size() < 2) {
     return {};
   }
-  std::array<Quat, 4> candidateQuats{};
-  std::array<double, 4> distanceToSing{};
-  constexpr std::array<Rotations, 4> rotations = {
+  alglin::array<Quat, 4> candidateQuats{};
+  alglin::array<double, 4> distanceToSing{};
+  std::initializer_list<Rotations> rotations{
       Rotations::X, Rotations::Y, Rotations::Z, Rotations::None};
 
   double lambda{};
@@ -213,7 +213,7 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
     }
   };
 
-  std::array<Quat, 4> candidateQuats{};
+  alglin::array<Quat, 4> candidateQuats{};
 
   candidateQuats[0] = quest_unsafe(B, lambda);
 
@@ -241,7 +241,7 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
 
 #endif
 
-Matrix3 triad(const std::array<Sensor, 2> &sensors) {
+Matrix3 triad(const alglin::array<Sensor, 2> &sensors) {
 
   auto t_1b = sensors[0].measure;
   auto t_2b = alglin::cross(sensors[0].measure, sensors[1].measure);
