@@ -8,11 +8,12 @@
  - **misc** - Implementação em Python
 
 ## Compilação:
-Ambas bibliotecas fazem uso de `std::array` e `std::initializer_list`, logo um compilador com C++11 é necessário. Caso queira `constexpr` modifique o `attdet/alglin/CMakeLists.txt` e troque o `cxx_std_11` para 17. Então use o CMake:
+Ambas bibliotecas fazem uso de ~~`std::array` e~~ `std::initializer_list`, logo um compilador com C++11 é necessário. Caso queira `constexpr` modifique o `attdet/alglin/CMakeLists.txt` e troque o `cxx_std_11` para 17. Então use o CMake:
 
 ```shell
 mkdir build
 cd build
+cmake ..
 cmake --build .. --config <CONFIG> --target <TARGET>
 ```
 
