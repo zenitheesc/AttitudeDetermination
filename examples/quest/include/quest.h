@@ -1,7 +1,7 @@
 #if !defined(QUEST_H)
 #define QUEST_H
-#include <alglin.hpp>
-#include <attdet.h>
+#include <alglin/alglin.hpp>
+#include <attdet/attdet.h>
 
 
 #endif // QUEST_H

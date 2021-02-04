@@ -1,4 +1,4 @@
-#include <attdet.h>
+#include <attdet/attdet.h>
 #include <iomanip>
 #include <iostream>
 #include "quest.h"
