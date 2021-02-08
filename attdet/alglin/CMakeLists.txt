@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.8)
 project(libalglin VERSION 0.1.0)
 
 # TARGET alglinear as header-only library

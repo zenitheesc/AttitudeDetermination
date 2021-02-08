@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.8)
 project(AttitudeDetermination VERSION 0.1.0)
 
 include(examples/serial/CMakeLists.txt)
