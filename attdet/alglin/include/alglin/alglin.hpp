@@ -536,5 +536,5 @@ using Vec3 = alglin::Vector<double, 3>;
 using Quat = alglin::Vector<double, 4>;
 // Matrix 3x3
 using Matrix3 = alglin::SquareMatrix<double, 3>;
-
+#undef CONSTEXPR_17
 #endif

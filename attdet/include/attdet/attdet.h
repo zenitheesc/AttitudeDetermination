@@ -14,9 +14,8 @@ struct Sensor {
 	 * @param reference_ Inertial frame value
 	 * @param weight_ Relative Weight of the Sensor in QUEST
 	 */
-	CONSTEXPR_17 Sensor() = default;
-	CONSTEXPR_17 Sensor(
-	  const Vec3 &measure_, const Vec3 &reference_, double weight_)
+	Sensor() = default;
+	Sensor(const Vec3 &measure_, const Vec3 &reference_, double weight_)
 	  : measure(measure_), reference(reference_), weight(weight_) {}
 	Vec3 measure{};
 	Vec3 reference{};

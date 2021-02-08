@@ -1,6 +1,13 @@
 #ifndef ARRAY_HPP
 #define ARRAY_HPP
 
+#if __cplusplus >= 201703L
+#define CONSTEXPR_17 constexpr
+#else
+#define CONSTEXPR_17
+#endif
+
+
 namespace alglin {
 template<class Type, int N> class array {
 
@@ -40,12 +47,12 @@ template<class Type, int N> class array {
 	array(Type *from) {
 		for (int i = 0; i < N; i++) { elem[i] = from[i]; }
 	}
-	Type operator[](int i) const { return elem[i]; }
-	Type &operator[](int i) { return elem[i]; }
+	CONSTEXPR_17 Type operator[](int i) const { return elem[i]; }
+	CONSTEXPR_17 Type &operator[](int i) { return elem[i]; }
 	Type *data() { return elem; }
-	iterator begin() { return iterator(&elem[0]); }
-	iterator end() { return iterator(&elem[N]); }// one pass the end
+	CONSTEXPR_17 iterator begin() { return iterator(&elem[0]); }
+	CONSTEXPR_17 iterator end() { return iterator(&elem[N]); }// one pass the end
 };
 }// namespace alglin
-
+#undef CONSTEXPR_17
 #endif

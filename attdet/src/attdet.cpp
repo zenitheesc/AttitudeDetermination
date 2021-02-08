@@ -117,7 +117,7 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
 
 		lambda -= f(lambda) / df(lambda);
 
-		CONSTEXPR_17 auto identity = alglin::eye<double, 3>();
+		const auto identity = alglin::eye<double, 3>();
 		const Matrix3 Y = ((lambda + sigma) * identity) - S;
 		const Vec3 crp_ = alglin::transpose(alglin::inverse(Y) * ZT);
 		const auto w = 1 / (std::sqrt((crp_ * alglin::transpose(crp_))[0][0]));
