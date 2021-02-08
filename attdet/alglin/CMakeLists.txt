@@ -3,7 +3,6 @@ project(libalglin VERSION 0.1.0)
 
 # TARGET alglinear as header-only library
 
-set(CXX_STANDARD 11)
 
 add_library(alglin INTERFACE)
 target_compile_options(alglin INTERFACE -std=gnu++11)
