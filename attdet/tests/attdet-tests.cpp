@@ -11,9 +11,9 @@ TEST_CASE("QUEST") {
 		const Vec3 a = Quat2Euler(q);
 
 		// TODO: Melhorar testes com fp
-		REQUIRE(abs(a[0] - 30.) < 1E-5);
-		REQUIRE(abs(a[1] + 20.) < 1E-5);
-		REQUIRE(abs(a[2] - 10.) < 1E-5);
+		REQUIRE(std::abs(a[0] - 30.) < 1E-4);
+		REQUIRE(std::abs(a[1] + 20.) < 1E-4);
+		REQUIRE(std::abs(a[2] - 10.) < 1E-4);
 	}
 	SECTION("QUEST trivial") {
 		sensor0.reference = { 0.925417, -0.163176, -0.342020 };
@@ -22,10 +22,10 @@ TEST_CASE("QUEST") {
 		sensor1.measure = { -0.378521, -0.44096, -0.813797 };
 		Quat q = quest({ sensor0, sensor1 });
 
-		REQUIRE((q[0] - 0) < 1E-5);
-		REQUIRE((q[1] - 0) < 1E-5);
-		REQUIRE((q[2] - 0) < 1E-5);
-		REQUIRE((q[3] - 1) < 1E-5);
+		REQUIRE(std::abs(q[0] - 0) < 1E-5);
+		REQUIRE(std::abs(q[1] - 0) < 1E-5);
+		REQUIRE(std::abs(q[2] - 0) < 1E-5);
+		REQUIRE(std::abs(q[3] - 1) < 1E-5);
 	}
 	SECTION("QUEST em Singularidades") {
 
@@ -57,10 +57,10 @@ TEST_CASE("QUEST") {
 		sensor1.measure = { -0.378521, -0.44096, -0.813797 };
 		Quat q = quest({ sensor0, sensor1 });
 
-		REQUIRE((q[0] - 0) < 1E-5);
-		REQUIRE((q[1] - 0) < 1E-5);
-		REQUIRE((q[2] - 0) < 1E-5);
-		REQUIRE((q[3] - 1) < 1E-5);
+		REQUIRE(std::abs(q[0] - 0) < 1E-5);
+		REQUIRE(std::abs(q[1] - 0) < 1E-5);
+		REQUIRE(std::abs(q[2] - 0) < 1E-5);
+		REQUIRE(std::abs(q[3] - 1) < 1E-5);
 	}
 }
 
