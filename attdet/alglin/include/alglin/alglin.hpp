@@ -41,7 +41,7 @@
 #define CONSTEXPR_17
 #endif
 
-// #define USE_FAST_INVSQRT 0 // Agora definido no CMakeCache
+
 /***
   **     ___    __      __    _         __
   **    /   |  / /___ _/ /   (_)___    / /_  ____  ____
@@ -97,12 +97,12 @@ namespace {
 		return u;
 	}
 
-	float fast_invsqrt(float x) {
+	 float fast_invsqrt(float x) {
 		int i = bit_cast<int>(x);
 		i = 0x5f3759df - (i >> 1);
 		float y = bit_cast<float>(i);
-		y = y * (1.5F - 0.5F * x * y * y);
-		y = y * (1.5F - 0.5F * x * y * y);
+		y = y * (1.5f - 0.5f * x * y * y);
+		y = y * (1.5f - 0.5f * x * y * y);
 		return y;
 	}
 
