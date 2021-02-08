@@ -97,7 +97,7 @@ namespace {
 		return u;
 	}
 
-	 float fast_invsqrt(float x) {
+	float fast_invsqrt(float x) {
 		int i = bit_cast<int>(x);
 		i = 0x5f3759df - (i >> 1);
 		float y = bit_cast<float>(i);

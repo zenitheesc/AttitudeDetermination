@@ -51,7 +51,9 @@ template<class Type, int N> class array {
 	CONSTEXPR_17 Type &operator[](int i) { return elem[i]; }
 	Type *data() { return elem; }
 	CONSTEXPR_17 iterator begin() { return iterator(&elem[0]); }
-	CONSTEXPR_17 iterator end() { return iterator(&elem[N]); }// one pass the end
+	CONSTEXPR_17 iterator end() {
+		return iterator(&elem[N]);
+	}// one pass the end
 };
 }// namespace alglin
 #undef CONSTEXPR_17

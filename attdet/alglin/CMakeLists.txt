@@ -5,7 +5,7 @@ project(libalglin VERSION 0.1.0)
 
 
 add_library(alglin INTERFACE)
-target_compile_options(alglin INTERFACE -std=gnu++17)
+target_compile_options(alglin INTERFACE -std=gnu++11)
 target_include_directories(alglin INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
 set(ALGLIN_USE_FAST_INVSQRT OFF CACHE BOOL "Use FastInvSqrt Algorithm")

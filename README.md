@@ -41,16 +41,20 @@
 </p>
 
 ## Contents
- - **attdet** - The main Attitude Determination Library. 
- - **attdet/alglin** - Internal Linear Algebra Library.
- - **examples/quest** - QUaternion ESTimator algorithm demo.
- - **examples/serial** - QUEST demo with serial port data.
- - **misc** - Python implementation using Numpy
+
+- **attdet** - The main Attitude Determination Library.
+- **attdet/alglin** - Internal Linear Algebra Library.
+- **examples/quest** - QUaternion ESTimator algorithm demo.
+- **examples/serial** - QUEST demo with serial port data.
+- **misc** - Python implementation using Numpy
+
 ## Environment and tools
 
-CMake. A C++11 Compiler (e.g. GCC 4.8). 
+CMake. A C++11 Compiler (e.g. GCC 4.8).
+
 ## Steps to run and debug
-Both libraries make use of ~~`std::array`~~ e `std::initializer_list`, so a C++11 compiler is necessary. To use `constexpr` modify `attdet/alglin/CMakeLists.txt` changing `cxx_std_11` to 17. Then use CMake:
+
+Both libraries make use of ~~`std::array`~~ e `std::initializer_list`, so a C++11 compiler is necessary. To use `constexpr` modify `attdet/alglin/CMakeLists.txt` changing `gnu++11` to 17. Then use CMake:
 
 ```shell
 mkdir build
@@ -58,28 +62,33 @@ cd build
 cmake ..
 cmake --build .. --config <CONFIG> --target <TARGET>
 ```
+
 Where `CONFIG` can be `Debug`, `Release`, `MinSizeRel` and `TARGET` is A subproject: `attdet`, `quest`, `serial` or tests: `alglin-tests`, `attdet-tests`. The tests use the Catch2 library that is automatically fetched by CMake.
 
 The `alglin` library is header-only so its not a direct target. But the `attdet` library is a static library.
+
 ## TODO:
-- [x] Compile using STM32 Toolchain (impact*: ~6KB)
+
+- [x] Compile using STM32 Toolchain (impact\*: ~6KB)
 - [ ] Use asserts in critical functions.
 <!-- - [ ] STL Compatible Iterators
 - [ ] `void_t` SFINAE Concepts ? -->
 
-*Compiling in Release mode, with C++14 manually copying files directly, not compiling and linking `libattdet.a`.  
+\*Compiling in Release mode, with C++14 manually copying files directly, not compiling and linking `libattdet.a`.
+
 ## How to contribute
 
- 1. Fork.
- 2. Branch.
- 3. Commit.
- 4. Pull Request.
+1.  Fork.
+2.  Branch.
+3.  Commit.
+4.  Pull Request.
 
 ## More:
+
 Temos um texto sobre Determinação de Atitude e a história do algorítmo QUEST em nosso [Medium](https://zenith-eesc.medium.com/determina%C3%A7%C3%A3o-de-atitude-62d5e716631a)
 
-
 ---
+
 <p align="center">
     <a href="http://zenith.eesc.usp.br">
     <img src="https://img.shields.io/badge/Check%20out-Zenith's Oficial Website-black?style=for-the-badge" />
