@@ -34,13 +34,17 @@
 #define ALGLIN_PRECISION (1E-14)
 #endif// ALGLIN_PRECISION
 
+#define CONSTEXPR_17
+#define NODISCARD
+#define MAYBE_UNUSED
 // Is constexpr if C++17 or higher
 #if __cplusplus >= 201703L
 #define CONSTEXPR_17 constexpr
-#else
-#define CONSTEXPR_17
+#if __cpp_attributes && __has_cpp_attribute(nodiscard)
+#define NODISCARD [[nodiscard]]
+#define MAYBE_UNUSED [[maybe_unused]]
 #endif
-
+#endif
 
 /***
   **     ___    __      __    _         __
@@ -224,7 +228,7 @@ std::ostream &operator<<(std::ostream &sout, const GenericMatrix<T, N, M> &p) {
  * @return CONSTEXPR_17 GenericMatrix<T, M, N>
  */
 template<class T, int N, int M>
-[[nodiscard]] CONSTEXPR_17 GenericMatrix<T, M, N> transpose(
+NODISCARD CONSTEXPR_17 GenericMatrix<T, M, N> transpose(
   const GenericMatrix<T, N, M> &A) {
 	GenericMatrix<T, M, N> out{};
 	for (int i = 0; i < N; ++i) {
@@ -242,7 +246,7 @@ template<class T, int N, int M>
  * @return CONSTEXPR_17 T traço
  */
 template<class T, int N, int M>
-[[nodiscard]] CONSTEXPR_17 T trace(const GenericMatrix<T, N, M> &A) {
+NODISCARD CONSTEXPR_17 T trace(const GenericMatrix<T, N, M> &A) {
 	T sum = 0;
 	for (int i = 0; i < M; ++i) { sum = sum + A[i][i]; }
 	return sum;
@@ -271,7 +275,7 @@ template<class T, int N> using SquareMatrix = GenericMatrix<T, N, N>;
  * @return CONSTEXPR_17 T determinante
  */
 template<class T, int N>
-[[nodiscard]] CONSTEXPR_17 T det([[maybe_unused]] const SquareMatrix<T, N> &A) {
+NODISCARD CONSTEXPR_17 T det(MAYBE_UNUSED const SquareMatrix<T, N> &) {
 	static_assert(N < 4, "Matrix must be at most 3x3");
 }
 
@@ -281,8 +285,7 @@ template<class T, int N>
  * @param A Matrix
  * @return CONSTEXPR_17 T determinante
  */
-template<class T>
-[[nodiscard]] CONSTEXPR_17 T det(const SquareMatrix<T, 2> &A) {
+template<class T> NODISCARD CONSTEXPR_17 T det(const SquareMatrix<T, 2> &A) {
 	return (A[0][0] * A[1][1]) - (A[0][1] * A[1][0]);
 }
 /**
@@ -291,8 +294,7 @@ template<class T>
  * @param A Matrix
  * @return CONSTEXPR_17 T determinante
  */
-template<class T>
-[[nodiscard]] CONSTEXPR_17 T det(const SquareMatrix<T, 3> &A) {
+template<class T> NODISCARD CONSTEXPR_17 T det(const SquareMatrix<T, 3> &A) {
 	return (A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1])
 			+ A[0][1] * (A[1][2] * A[2][0] - A[1][0] * A[2][2])
 			+ A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]));
@@ -300,7 +302,7 @@ template<class T>
 
 // - 48 bytes
 template<class T, int N>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> transpose(
+NODISCARD CONSTEXPR_17 SquareMatrix<T, N> transpose(
   const SquareMatrix<T, N> &A) {
 	auto out = A;
 	for (int i = 0; i < N; ++i) {
@@ -317,8 +319,8 @@ template<class T, int N>
  * @return SquareMatrix<T,N> Matrix Inversa
  */
 template<class T, int N>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> inverse(
-  [[maybe_unused]] const SquareMatrix<T, N> &M) {
+NODISCARD CONSTEXPR_17 SquareMatrix<T, N> inverse(
+  MAYBE_UNUSED const SquareMatrix<T, N> &) {
 	static_assert(N < 4, "Matrix must be at most 3x3");
 }
 
@@ -329,8 +331,7 @@ template<class T, int N>
  * @return SquareMatrix<T,2> Matrix Inversa
  */
 template<class T>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, 2> inverse(
-  const SquareMatrix<T, 2> &M) {
+NODISCARD CONSTEXPR_17 SquareMatrix<T, 2> inverse(const SquareMatrix<T, 2> &M) {
 	const auto d = det(M);
 	auto A = M;
 	if (d) {
@@ -350,8 +351,8 @@ template<class T>
  * @return CONSTEXPR_17 SquareMatrix<T, N> Matriz Adjunta
  */
 template<class T, int N>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> adjugate(
-  [[maybe_unused]] const SquareMatrix<T, N> &M) {
+NODISCARD CONSTEXPR_17 SquareMatrix<T, N> adjugate(
+  MAYBE_UNUSED const SquareMatrix<T, N> &) {
 	static_assert(N == 3, "Matrix must be 3x3");
 }
 
@@ -362,7 +363,7 @@ template<class T, int N>
  * @return CONSTEXPR_17 SquareMatrix<T, 3> Matriz Adjunta
  */
 template<class T>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, 3> adjugate(
+NODISCARD CONSTEXPR_17 SquareMatrix<T, 3> adjugate(
   const SquareMatrix<T, 3> &M) {
 	auto cofactor = [&M](const int i, const int j) -> T {
 		SquareMatrix<T, 2> m{};
@@ -397,8 +398,7 @@ template<class T>
  * @return SquareMatrix<T,2> Matrix Inversa
  */
 template<class T>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, 3> inverse(
-  const SquareMatrix<T, 3> &M) {
+NODISCARD CONSTEXPR_17 SquareMatrix<T, 3> inverse(const SquareMatrix<T, 3> &M) {
 	const auto d = det(M);
 	if (d == static_cast<T>(0)) { return {}; }
 
@@ -444,7 +444,7 @@ template<typename T, int N> struct Vector : public GenericMatrix<T, 1, N> {
  * @return CONSTEXPR_17 Vector<T, 3> u x v
  */
 template<class T>
-[[nodiscard]] CONSTEXPR_17 Vector<T, 3> cross(
+NODISCARD CONSTEXPR_17 Vector<T, 3> cross(
   const Vector<T, 3> &u, const Vector<T, 3> &v) {
 	Vector<T, 3> out({ { (-u[2] * v[1] + u[1] * v[2]) },
 	  { (u[2] * v[0] - u[0] * v[2]) },
@@ -460,7 +460,7 @@ template<class T>
  * @return CONSTEXPR_17 SquareMatrix<T, N> Matriz NxN
  */
 template<class T, int N>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> outer(
+NODISCARD CONSTEXPR_17 SquareMatrix<T, N> outer(
   const Vector<T, N> &u, const Vector<T, N> &v) {
 	SquareMatrix<T, N> out{};
 	for (int i = 0; i < N; ++i) {
@@ -476,7 +476,7 @@ template<class T, int N>
  * @return CONSTEXPR_17 T Produto Interno
  */
 template<class T, int N>
-[[nodiscard]] CONSTEXPR_17 T operator*(
+NODISCARD CONSTEXPR_17 T operator*(
   const Vector<T, N> &lhs, const Vector<T, N> &rhs) {
 	double sum{};
 	for (int i = 0; i < N; ++i) {
@@ -495,7 +495,7 @@ template<class T, int N>
  * @return const Vector<T, N> Vetor Unitario
  */
 template<class T, int N>
-[[nodiscard]] Vector<T, N> normalize(const Vector<T, N> &v) {
+NODISCARD Vector<T, N> normalize(const Vector<T, N> &v) {
 #if USE_FAST_INVSQRT
 	const auto n = fast_invsqrt(v * v);
 #else
@@ -507,7 +507,7 @@ template<class T, int N>
 }
 
 template<class T, int N>
-[[nodiscard]] CONSTEXPR_17 Vector<T, N> operator*(
+NODISCARD CONSTEXPR_17 Vector<T, N> operator*(
   const SquareMatrix<T, N> &lhs, const Vector<T, N> &rhs) {
 	const auto vT = transpose(rhs);
 	return transpose(lhs * vT);
@@ -519,7 +519,7 @@ template<class T, int N>
  * @tparam N linhas = colunas
  * @return CONSTEXPR_17 SquareMatrix<T, N> Matrix Identidade
  */
-template<class T, int N> [[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> eye() {
+template<class T, int N> NODISCARD CONSTEXPR_17 SquareMatrix<T, N> eye() {
 	SquareMatrix<T, N> out{};
 	for (int i = 0; i < N; ++i) { out[i][i] = 1; }
 	return out;
