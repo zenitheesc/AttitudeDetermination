@@ -22,19 +22,17 @@
 
 #ifndef ALGLIN_H_
 #define ALGLIN_H_
-// #include <array>
+
+#include <alglin/array.hpp>// alglin::array
 #include <cmath>
-#include <alglin/array.hpp> // alglin::array
-// Convenience
+#include <cstring>
 #include <initializer_list>
 #include <ostream>
-
-#include <cstring>
 
 #if !defined(ALGLIN_PRECISION)
 // Used in 'operator==' in floating-point comparison
 #define ALGLIN_PRECISION (1E-14)
-#endif // ALGLIN_PRECISION
+#endif// ALGLIN_PRECISION
 
 // Is constexpr if C++17 or higher
 #if __cplusplus >= 201703L
@@ -87,25 +85,28 @@ namespace alglin {
 #if USE_FAST_INVSQRT
 namespace {
 
-template <class U, class T> U bit_cast(T t) {
-  static_assert(sizeof(T) == sizeof(U), "Otherwise is undefined behavior");
-  static_assert(std::is_trivially_copyable<T>::value, "Needed for memcpy ");
-  static_assert(std::is_trivially_copyable<U>::value, "Needed for memcpy");
-  U u{};
-  std::memcpy(&u, &t, sizeof(T));
-  return u;
-}
+	template<class U, class T> U bit_cast(T t) {
+		static_assert(
+		  sizeof(T) == sizeof(U), "Otherwise is undefined behavior");
+		static_assert(
+		  std::is_trivially_copyable<T>::value, "Needed for memcpy ");
+		static_assert(
+		  std::is_trivially_copyable<U>::value, "Needed for memcpy");
+		U u{};
+		std::memcpy(&u, &t, sizeof(T));
+		return u;
+	}
 
-float fast_invsqrt(float x) {
-  int i = bit_cast<int>(x);
-  i = 0x5f3759df - (i >> 1);
-  float y = bit_cast<float>(i);
-  y = y * (1.5F - 0.5F * x * y * y);
-  y = y * (1.5F - 0.5F * x * y * y);
-  return y;
-}
+	float fast_invsqrt(float x) {
+		int i = bit_cast<int>(x);
+		i = 0x5f3759df - (i >> 1);
+		float y = bit_cast<float>(i);
+		y = y * (1.5F - 0.5F * x * y * y);
+		y = y * (1.5F - 0.5F * x * y * y);
+		return y;
+	}
 
-} // namespace
+}// namespace
 #endif
 /**
   ____                      _      __  __       _        _
@@ -118,104 +119,102 @@ float fast_invsqrt(float x) {
  * @brief GenericMatrix representa uma Matrix de N linhas por M colunas.
  * Base para as classes SquareMatrix e Vector
  */
-template <typename T, int N, int M> struct GenericMatrix {
-protected:
-  alglin::array<alglin::array<T, M>, N> elements{};
+template<typename T, int N, int M> struct GenericMatrix {
+  protected:
+	alglin::array<alglin::array<T, M>, N> elements{};
 
-public:
-  // Somente usada nos testes
-  CONSTEXPR_17
-  GenericMatrix(std::initializer_list<std::initializer_list<T>> l) {
-    auto row_it = this->elements.begin();
-    for (auto &&i : l) {
-      auto col_it = (*row_it).begin();
-      for (auto &&j : i) {
-        *col_it++ = j;
-      }
-      row_it++;
-    }
-  }
+  public:
+	// Somente usada nos testes
+	CONSTEXPR_17
+	GenericMatrix(std::initializer_list<std::initializer_list<T>> l) {
+		auto row_it = this->elements.begin();
+		for (auto &&i : l) {
+			auto col_it = (*row_it).begin();
+			for (auto &&j : i) { *col_it++ = j; }
+			row_it++;
+		}
+	}
 
-  CONSTEXPR_17 GenericMatrix() = default;
+	CONSTEXPR_17 GenericMatrix() = default;
 
-  CONSTEXPR_17 GenericMatrix<T, N, M>
-  operator+(const GenericMatrix<T, N, M> &rhs) const {
-    GenericMatrix<T, N, M> out{};
-    for (int i = 0; i < N; ++i) {
-      for (int j = 0; j < M; j++) {
-        out[i][j] = elements[i][j] + rhs[i][j];
-      }
-    }
-    return out;
-  }
-  CONSTEXPR_17 GenericMatrix<T, N, M>
-  operator-(const GenericMatrix<T, N, M> &rhs) const {
-    return (*this + (static_cast<T>(-1) * rhs));
-  }
-  CONSTEXPR_17 alglin::array<T, M> operator[](int i) const { return elements[i]; }
-  CONSTEXPR_17 alglin::array<T, M> &operator[](int i) { return elements[i]; }
-  CONSTEXPR_17 alglin::array<alglin::array<T, M>, N> data() const { return elements; }
+	CONSTEXPR_17 GenericMatrix<T, N, M> operator+(
+	  const GenericMatrix<T, N, M> &rhs) const {
+		GenericMatrix<T, N, M> out{};
+		for (int i = 0; i < N; ++i) {
+			for (int j = 0; j < M; j++) {
+				out[i][j] = elements[i][j] + rhs[i][j];
+			}
+		}
+		return out;
+	}
+	CONSTEXPR_17 GenericMatrix<T, N, M> operator-(
+	  const GenericMatrix<T, N, M> &rhs) const {
+		return (*this + (static_cast<T>(-1) * rhs));
+	}
+	CONSTEXPR_17 alglin::array<T, M> operator[](int i) const {
+		return elements[i];
+	}
+	CONSTEXPR_17 alglin::array<T, M> &operator[](int i) { return elements[i]; }
+	CONSTEXPR_17 alglin::array<alglin::array<T, M>, N> data() const {
+		return elements;
+	}
 };
 
 /***
  * GenericMatrix operators
  ***/
-template <class T, int N, int M>
-CONSTEXPR_17 bool operator==(const GenericMatrix<T, N, M> &A,
-                             const GenericMatrix<T, N, M> &B) {
-  for (int row = 0; row < N; row++) {
-    for (int col = 0; col < M; col++) {
-      if (std::abs(A[row][col] - B[row][col]) >
-          static_cast<T>(ALGLIN_PRECISION)) {
-        return false;
-      }
-    }
-  }
-  return true;
+template<class T, int N, int M>
+CONSTEXPR_17 bool operator==(
+  const GenericMatrix<T, N, M> &A, const GenericMatrix<T, N, M> &B) {
+	for (int row = 0; row < N; row++) {
+		for (int col = 0; col < M; col++) {
+			if (std::abs(A[row][col] - B[row][col])
+				> static_cast<T>(ALGLIN_PRECISION)) {
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
-template <class T, int N, int M>
-CONSTEXPR_17 GenericMatrix<T, N, M> operator*(const GenericMatrix<T, N, M> &A,
-                                              const T a) {
-  GenericMatrix<T, N, M> out{};
-  const T _a = static_cast<T>(a);
-  for (int i = 0; i < N; i++) {
-    for (int j = 0; j < M; j++) {
-      out[i][j] = _a * A[i][j];
-    }
-  }
-  return out;
+template<class T, int N, int M>
+CONSTEXPR_17 GenericMatrix<T, N, M> operator*(
+  const GenericMatrix<T, N, M> &A, const T a) {
+	GenericMatrix<T, N, M> out{};
+	const T _a = static_cast<T>(a);
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) { out[i][j] = _a * A[i][j]; }
+	}
+	return out;
 }
 
-template <class T, int N, int M>
-CONSTEXPR_17 GenericMatrix<T, N, M> operator*(T a,
-                                              const GenericMatrix<T, N, M> &A) {
-  return A * a;
+template<class T, int N, int M>
+CONSTEXPR_17 GenericMatrix<T, N, M> operator*(
+  T a, const GenericMatrix<T, N, M> &A) {
+	return A * a;
 }
 
-template <class T, int N, int M, int R>
-CONSTEXPR_17 GenericMatrix<T, N, M> operator*(const GenericMatrix<T, N, R> &A,
-                                              const GenericMatrix<T, R, M> &B) {
-  GenericMatrix<T, N, M> out{};
-  for (int row = 0; row < N; row++) {
-    for (int col = 0; col < M; col++) {
-      for (int inn = 0; inn < R; inn++) {
-        out[row][col] += A[row][inn] * B[inn][col];
-      }
-    }
-  }
-  return out;
+template<class T, int N, int M, int R>
+CONSTEXPR_17 GenericMatrix<T, N, M> operator*(
+  const GenericMatrix<T, N, R> &A, const GenericMatrix<T, R, M> &B) {
+	GenericMatrix<T, N, M> out{};
+	for (int row = 0; row < N; row++) {
+		for (int col = 0; col < M; col++) {
+			for (int inn = 0; inn < R; inn++) {
+				out[row][col] += A[row][inn] * B[inn][col];
+			}
+		}
+	}
+	return out;
 }
 
-template <class T, int N, int M>
+template<class T, int N, int M>
 std::ostream &operator<<(std::ostream &sout, const GenericMatrix<T, N, M> &p) {
-  for (int i = 0; i < N; ++i) {
-    for (int j = 0; j < M; j++) {
-      sout << p[i][j] << '\t';
-    }
-    sout << '\n';
-  }
-  return sout;
+	for (int i = 0; i < N; ++i) {
+		for (int j = 0; j < M; j++) { sout << p[i][j] << '\t'; }
+		sout << '\n';
+	}
+	return sout;
 }
 
 /**
@@ -224,16 +223,14 @@ std::ostream &operator<<(std::ostream &sout, const GenericMatrix<T, N, M> &p) {
  * @param A Matrix NxM
  * @return CONSTEXPR_17 GenericMatrix<T, M, N>
  */
-template <class T, int N, int M>
-[[nodiscard]] CONSTEXPR_17 GenericMatrix<T, M, N>
-transpose(const GenericMatrix<T, N, M> &A) {
-  GenericMatrix<T, M, N> out{};
-  for (int i = 0; i < N; ++i) {
-    for (int j = 0; j < M; ++j) {
-      out[j][i] = A[i][j];
-    }
-  }
-  return out;
+template<class T, int N, int M>
+[[nodiscard]] CONSTEXPR_17 GenericMatrix<T, M, N> transpose(
+  const GenericMatrix<T, N, M> &A) {
+	GenericMatrix<T, M, N> out{};
+	for (int i = 0; i < N; ++i) {
+		for (int j = 0; j < M; ++j) { out[j][i] = A[i][j]; }
+	}
+	return out;
 }
 
 /**
@@ -244,13 +241,11 @@ transpose(const GenericMatrix<T, N, M> &A) {
  * @param A Matrix
  * @return CONSTEXPR_17 T traço
  */
-template <class T, int N, int M>
+template<class T, int N, int M>
 [[nodiscard]] CONSTEXPR_17 T trace(const GenericMatrix<T, N, M> &A) {
-  T sum = 0;
-  for (int i = 0; i < M; ++i) {
-    sum = sum + A[i][i];
-  }
-  return sum;
+	T sum = 0;
+	for (int i = 0; i < M; ++i) { sum = sum + A[i][i]; }
+	return sum;
 }
 
 /**
@@ -259,14 +254,14 @@ template <class T, int N, int M>
 \___ \ / _` | | | |/ _` | '__/ _ \ |\/| |/ _` | __| '__| \ \/ /
  ___) | (_| | |_| | (_| | | |  __/ |  | | (_| | |_| |  | |>  <
 |____/ \__, |\__,_|\__,_|_|  \___|_|  |_|\__,_|\__|_|  |_/_/\_\
-          |_|
+		  |_|
 **/
 /**
  * @brief SquareMatrix representa uma Matriz Quadrada NxN
  *
  */
 
-template <class T, int N> using SquareMatrix = GenericMatrix<T, N, N>;
+template<class T, int N> using SquareMatrix = GenericMatrix<T, N, N>;
 
 /**
  * @brief Rejeita o calculo de determinantes de matrizes
@@ -275,9 +270,9 @@ template <class T, int N> using SquareMatrix = GenericMatrix<T, N, N>;
  * @param M Matrix
  * @return CONSTEXPR_17 T determinante
  */
-template <class T, int N>
+template<class T, int N>
 [[nodiscard]] CONSTEXPR_17 T det([[maybe_unused]] const SquareMatrix<T, N> &A) {
-  static_assert(N < 4, "Matrix must be at most 3x3");
+	static_assert(N < 4, "Matrix must be at most 3x3");
 }
 
 /**
@@ -286,9 +281,9 @@ template <class T, int N>
  * @param A Matrix
  * @return CONSTEXPR_17 T determinante
  */
-template <class T>
+template<class T>
 [[nodiscard]] CONSTEXPR_17 T det(const SquareMatrix<T, 2> &A) {
-  return (A[0][0] * A[1][1]) - (A[0][1] * A[1][0]);
+	return (A[0][0] * A[1][1]) - (A[0][1] * A[1][0]);
 }
 /**
  * @brief Calcula o determinante de uma Matriz 3x3
@@ -296,25 +291,23 @@ template <class T>
  * @param A Matrix
  * @return CONSTEXPR_17 T determinante
  */
-template <class T>
+template<class T>
 [[nodiscard]] CONSTEXPR_17 T det(const SquareMatrix<T, 3> &A) {
-  return (A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) +
-          A[0][1] * (A[1][2] * A[2][0] - A[1][0] * A[2][2]) +
-          A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]));
+	return (A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1])
+			+ A[0][1] * (A[1][2] * A[2][0] - A[1][0] * A[2][2])
+			+ A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]));
 }
 
 // - 48 bytes
 template<class T, int N>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> transpose(const SquareMatrix<T, N>& A){
-  auto out = A;
-  for (int  i = 0; i < N; ++i) {
-        for (int  j = 0; j < i; ++j) {
-            std::swap(out[i][j], out[j][i]);
-        }
-    }
-    return out;
+[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> transpose(
+  const SquareMatrix<T, N> &A) {
+	auto out = A;
+	for (int i = 0; i < N; ++i) {
+		for (int j = 0; j < i; ++j) { std::swap(out[i][j], out[j][i]); }
+	}
+	return out;
 }
-
 
 /**
  * @brief Rejeita o calculo de inversos de matrizes
@@ -323,10 +316,10 @@ template<class T, int N>
  * @param M Matrix
  * @return SquareMatrix<T,N> Matrix Inversa
  */
-template <class T, int N>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N>
-inverse([[maybe_unused]] const SquareMatrix<T, N> &M) {
-  static_assert(N < 4, "Matrix must be at most 3x3");
+template<class T, int N>
+[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> inverse(
+  [[maybe_unused]] const SquareMatrix<T, N> &M) {
+	static_assert(N < 4, "Matrix must be at most 3x3");
 }
 
 /**
@@ -335,19 +328,19 @@ inverse([[maybe_unused]] const SquareMatrix<T, N> &M) {
  * @param M Matrix
  * @return SquareMatrix<T,2> Matrix Inversa
  */
-template <class T>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, 2>
-inverse(const SquareMatrix<T, 2> &M) {
-  const auto d = det(M);
-  auto A = M;
-  if (d) {
-    const auto a = 1 / d;
-    std::swap(A[0][0], A[1][1]);
-    A[1][0] *= -1;
-    A[0][1] *= -1;
-    A = A * a;
-  }
-  return A;
+template<class T>
+[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, 2> inverse(
+  const SquareMatrix<T, 2> &M) {
+	const auto d = det(M);
+	auto A = M;
+	if (d) {
+		const auto a = 1 / d;
+		std::swap(A[0][0], A[1][1]);
+		A[1][0] *= -1;
+		A[0][1] *= -1;
+		A = A * a;
+	}
+	return A;
 }
 
 /**
@@ -356,10 +349,10 @@ inverse(const SquareMatrix<T, 2> &M) {
  *
  * @return CONSTEXPR_17 SquareMatrix<T, N> Matriz Adjunta
  */
-template <class T, int N>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N>
-adjugate([[maybe_unused]] const SquareMatrix<T, N> &M) {
-  static_assert(N == 3, "Matrix must be 3x3");
+template<class T, int N>
+[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> adjugate(
+  [[maybe_unused]] const SquareMatrix<T, N> &M) {
+	static_assert(N == 3, "Matrix must be 3x3");
 }
 
 /**
@@ -368,39 +361,33 @@ adjugate([[maybe_unused]] const SquareMatrix<T, N> &M) {
  * @param M Matriz
  * @return CONSTEXPR_17 SquareMatrix<T, 3> Matriz Adjunta
  */
-template <class T>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, 3>
-adjugate(const SquareMatrix<T, 3> &M) {
-  auto cofactor = [&M](const int i, const int j) -> T {
-    SquareMatrix<T, 2> m{};
-    int u{};
-    int v{};
-    for (int r = 0; r < 3; ++r) {
-      if (i == r) {
-        continue;
-      }
-      for (int c = 0; c < 3; ++c) {
-        if (j == c) {
-          continue;
-        }
-        m[u][v++] = M[r][c];
-      }
-      ++u;
-      v = 0;
-    }
+template<class T>
+[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, 3> adjugate(
+  const SquareMatrix<T, 3> &M) {
+	auto cofactor = [&M](const int i, const int j) -> T {
+		SquareMatrix<T, 2> m{};
+		int u{};
+		int v{};
+		for (int r = 0; r < 3; ++r) {
+			if (i == r) { continue; }
+			for (int c = 0; c < 3; ++c) {
+				if (j == c) { continue; }
+				m[u][v++] = M[r][c];
+			}
+			++u;
+			v = 0;
+		}
 
-    if ((i + j) % 2)
-      return -det(m);
-    else
-      return det(m);
-  };
-  SquareMatrix<T, 3> out{};
-  for (int i = 0; i < 3; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      out[i][j] = cofactor(i, j);
-    }
-  }
-  return out;
+		if ((i + j) % 2)
+			return -det(m);
+		else
+			return det(m);
+	};
+	SquareMatrix<T, 3> out{};
+	for (int i = 0; i < 3; ++i) {
+		for (int j = 0; j < 3; ++j) { out[i][j] = cofactor(i, j); }
+	}
+	return out;
 }
 
 /**
@@ -409,17 +396,15 @@ adjugate(const SquareMatrix<T, 3> &M) {
  * @param M Matrix
  * @return SquareMatrix<T,2> Matrix Inversa
  */
-template <class T>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, 3>
-inverse(const SquareMatrix<T, 3> &M) {
-  const auto d = det(M);
-  if (d == static_cast<T>(0)) {
-    return {};
-  }
+template<class T>
+[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, 3> inverse(
+  const SquareMatrix<T, 3> &M) {
+	const auto d = det(M);
+	if (d == static_cast<T>(0)) { return {}; }
 
-  const auto a = 1 / d;
-  auto A = transpose(adjugate(M)) * a;
-  return A;
+	const auto a = 1 / d;
+	auto A = transpose(adjugate(M)) * a;
+	return A;
 }
 
 /**
@@ -432,24 +417,23 @@ __     __        _
 /***
  * Vetores são definidos como Matriz com uma linha e N colunas.
  **/
-template <typename T, int N> struct Vector : public GenericMatrix<T, 1, N> {
+template<typename T, int N> struct Vector : public GenericMatrix<T, 1, N> {
+	CONSTEXPR_17 Vector(const GenericMatrix<T, 1, N> &other) noexcept {
+		this->elements = other.data();
+	}
 
-  CONSTEXPR_17 Vector(const GenericMatrix<T, 1, N> &other) noexcept {
-    this->elements = other.data();
-  }
+	CONSTEXPR_17 Vector(std::initializer_list<T> l) noexcept {
+		auto it = this->elements[0].begin();
+		for (auto &&i : l) { *it++ = i; }
+	}
 
-  CONSTEXPR_17 Vector(std::initializer_list<T> l) noexcept {
-    auto it = this->elements[0].begin();
-    for (auto &&i : l) {
-      *it++ = i;
-    }
-  }
+	CONSTEXPR_17 operator alglin::array<T, N>() const {
+		return this->elements[0];
+	}
 
-  CONSTEXPR_17 operator alglin::array<T, N>() const { return this->elements[0]; }
-
-  CONSTEXPR_17 Vector() = default;
-  CONSTEXPR_17 T operator[](int i) const { return this->elements[0][i]; }
-  CONSTEXPR_17 T &operator[](int i) { return this->elements[0][i]; }
+	CONSTEXPR_17 Vector() = default;
+	CONSTEXPR_17 T operator[](int i) const { return this->elements[0][i]; }
+	CONSTEXPR_17 T &operator[](int i) { return this->elements[0][i]; }
 };
 
 /**
@@ -459,13 +443,13 @@ template <typename T, int N> struct Vector : public GenericMatrix<T, 1, N> {
  * @param v Vetor
  * @return CONSTEXPR_17 Vector<T, 3> u x v
  */
-template <class T>
-[[nodiscard]] CONSTEXPR_17 Vector<T, 3> cross(const Vector<T, 3> &u,
-                                              const Vector<T, 3> &v) {
-  Vector<T, 3> out({{(-u[2] * v[1] + u[1] * v[2])},
-                    {(u[2] * v[0] - u[0] * v[2])},
-                    {(-u[1] * v[0] + u[0] * v[1])}});
-  return out;
+template<class T>
+[[nodiscard]] CONSTEXPR_17 Vector<T, 3> cross(
+  const Vector<T, 3> &u, const Vector<T, 3> &v) {
+	Vector<T, 3> out({ { (-u[2] * v[1] + u[1] * v[2]) },
+	  { (u[2] * v[0] - u[0] * v[2]) },
+	  { (-u[1] * v[0] + u[0] * v[1]) } });
+	return out;
 }
 
 /**
@@ -475,16 +459,14 @@ template <class T>
  * @param v Vetor
  * @return CONSTEXPR_17 SquareMatrix<T, N> Matriz NxN
  */
-template <class T, int N>
-[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> outer(const Vector<T, N> &u,
-                                                    const Vector<T, N> &v) {
-  SquareMatrix<T, N> out{};
-  for (int i = 0; i < N; ++i) {
-    for (int j = 0; j < N; ++j) {
-      out[i][j] = u[i] * v[j];
-    }
-  }
-  return out;
+template<class T, int N>
+[[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> outer(
+  const Vector<T, N> &u, const Vector<T, N> &v) {
+	SquareMatrix<T, N> out{};
+	for (int i = 0; i < N; ++i) {
+		for (int j = 0; j < N; ++j) { out[i][j] = u[i] * v[j]; }
+	}
+	return out;
 }
 /**
  * @brief Produto Interno de dois vetores de tamanho N
@@ -493,16 +475,16 @@ template <class T, int N>
  * @param rhs Vetor
  * @return CONSTEXPR_17 T Produto Interno
  */
-template <class T, int N>
-[[nodiscard]] CONSTEXPR_17 T operator*(const Vector<T, N> &lhs,
-                                       const Vector<T, N> &rhs) {
-  double sum{};
-  for (int i = 0; i < N; ++i) {
-    sum = sum + static_cast<double>(lhs[i] * rhs[i]);
-  }
-  return static_cast<T>(sum);
-  // return std::inner_product(lhs[0].begin(), lhs[0].end(),
-  //                           rhs[0].begin(), static_cast<T>(0));
+template<class T, int N>
+[[nodiscard]] CONSTEXPR_17 T operator*(
+  const Vector<T, N> &lhs, const Vector<T, N> &rhs) {
+	double sum{};
+	for (int i = 0; i < N; ++i) {
+		sum = sum + static_cast<double>(lhs[i] * rhs[i]);
+	}
+	return static_cast<T>(sum);
+	// return std::inner_product(lhs[0].begin(), lhs[0].end(),
+	//                           rhs[0].begin(), static_cast<T>(0));
 }
 
 /**
@@ -512,26 +494,23 @@ template <class T, int N>
  * @param v vetor
  * @return const Vector<T, N> Vetor Unitario
  */
-template <class T, int N>
+template<class T, int N>
 [[nodiscard]] Vector<T, N> normalize(const Vector<T, N> &v) {
-
 #if USE_FAST_INVSQRT
-  const auto n = fast_invsqrt(v * v);
+	const auto n = fast_invsqrt(v * v);
 #else
-  const double n = 1 / std::sqrt(v * v);
+	const double n = 1 / std::sqrt(v * v);
 #endif
-  auto out = v;
-  for (int i = 0; i < N; ++i) {
-    out[i] = v[i] * n;
-  }
-  return out;
+	auto out = v;
+	for (int i = 0; i < N; ++i) { out[i] = v[i] * n; }
+	return out;
 }
 
-template <class T, int N>
-[[nodiscard]] CONSTEXPR_17 Vector<T, N> operator*(const SquareMatrix<T, N> &lhs,
-                                                  const Vector<T, N> &rhs) {
-  const auto vT = transpose(rhs);
-  return transpose(lhs * vT);
+template<class T, int N>
+[[nodiscard]] CONSTEXPR_17 Vector<T, N> operator*(
+  const SquareMatrix<T, N> &lhs, const Vector<T, N> &rhs) {
+	const auto vT = transpose(rhs);
+	return transpose(lhs * vT);
 }
 
 /**
@@ -540,15 +519,13 @@ template <class T, int N>
  * @tparam N linhas = colunas
  * @return CONSTEXPR_17 SquareMatrix<T, N> Matrix Identidade
  */
-template <class T, int N> [[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> eye() {
-  SquareMatrix<T, N> out{};
-  for (int i = 0; i < N; ++i) {
-    out[i][i] = 1;
-  }
-  return out;
+template<class T, int N> [[nodiscard]] CONSTEXPR_17 SquareMatrix<T, N> eye() {
+	SquareMatrix<T, N> out{};
+	for (int i = 0; i < N; ++i) { out[i][i] = 1; }
+	return out;
 }
 
-} // namespace alglin
+}// namespace alglin
 
 /***
  * Helpers para tipos comuns
