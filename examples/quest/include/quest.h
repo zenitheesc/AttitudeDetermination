@@ -1,10 +1,5 @@
-#if !defined(_SERIAL_H_)
-#define _SERIAL_H_
-#include <alglin.hpp>
-#include <iostream>
-#include <fstream>
-#include <regex>
-#include <attdet.h>
+#if !defined(QUEST_H)
+#define QUEST_H
 
 
-#endif // _SERIAL_H_
+#endif// QUEST_H

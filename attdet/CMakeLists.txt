@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.8)
 project(libattdet VERSION 0.1.0)
 
 include(${CMAKE_CURRENT_LIST_DIR}/alglin/CMakeLists.txt)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.8)
 project(quest_demo VERSION 0.1.0)
 
 if ( NOT TARGET attdet)
