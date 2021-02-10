@@ -39,9 +39,12 @@
 #define MAYBE_UNUSED
 // Is constexpr if C++17 or higher
 #if __cplusplus >= 201703L
+#undef CONSTEXPR_17
 #define CONSTEXPR_17 constexpr
 #if __cpp_attributes && __has_cpp_attribute(nodiscard)
+#undef NODISCARD
 #define NODISCARD [[nodiscard]]
+#undef MAYBE_UNUSED
 #define MAYBE_UNUSED [[maybe_unused]]
 #endif
 #endif
@@ -200,7 +203,7 @@ CONSTEXPR_17 GenericMatrix<T, N, M> operator*(
 
 template<class T, int N, int M, int R>
 CONSTEXPR_17 GenericMatrix<T, N, M> operator*(
-  const GenericMatrix<T, N, R> &A, const GenericMatrix<T, R, M> &B) {
+  const GenericMatrix<T, N, R> &A, const GenericMatrix<T, R, M> &B) noexcept {
 	GenericMatrix<T, N, M> out{};
 	for (int row = 0; row < N; row++) {
 		for (int col = 0; col < M; col++) {
@@ -229,7 +232,7 @@ std::ostream &operator<<(std::ostream &sout, const GenericMatrix<T, N, M> &p) {
  */
 template<class T, int N, int M>
 NODISCARD CONSTEXPR_17 GenericMatrix<T, M, N> transpose(
-  const GenericMatrix<T, N, M> &A) {
+  const GenericMatrix<T, N, M> &A) noexcept {
 	GenericMatrix<T, M, N> out{};
 	for (int i = 0; i < N; ++i) {
 		for (int j = 0; j < M; ++j) { out[j][i] = A[i][j]; }
@@ -303,7 +306,7 @@ template<class T> NODISCARD CONSTEXPR_17 T det(const SquareMatrix<T, 3> &A) {
 // - 48 bytes
 template<class T, int N>
 NODISCARD CONSTEXPR_17 SquareMatrix<T, N> transpose(
-  const SquareMatrix<T, N> &A) {
+  const SquareMatrix<T, N> &A) noexcept {
 	auto out = A;
 	for (int i = 0; i < N; ++i) {
 		for (int j = 0; j < i; ++j) { std::swap(out[i][j], out[j][i]); }
@@ -331,12 +334,14 @@ NODISCARD CONSTEXPR_17 SquareMatrix<T, N> inverse(
  * @return SquareMatrix<T,2> Matrix Inversa
  */
 template<class T>
-NODISCARD CONSTEXPR_17 SquareMatrix<T, 2> inverse(const SquareMatrix<T, 2> &M) {
+NODISCARD CONSTEXPR_17 SquareMatrix<T, 2> inverse(
+  const SquareMatrix<T, 2> &M) noexcept {
 	const auto d = det(M);
 	auto A = M;
 	if (d) {
 		const auto a = 1 / d;
-		std::swap(A[0][0], A[1][1]);
+		using std::swap;
+		swap(A[0][0], A[1][1]);
 		A[1][0] *= -1;
 		A[0][1] *= -1;
 		A = A * a;
@@ -364,9 +369,9 @@ NODISCARD CONSTEXPR_17 SquareMatrix<T, N> adjugate(
  */
 template<class T>
 NODISCARD CONSTEXPR_17 SquareMatrix<T, 3> adjugate(
-  const SquareMatrix<T, 3> &M) {
-	auto cofactor = [&M](const int i, const int j) -> T {
-		SquareMatrix<T, 2> m{};
+  const SquareMatrix<T, 3> &M) noexcept {
+	SquareMatrix<T, 2> m{};
+	auto cofactor = [&M, &m](const int i, const int j) -> T {
 		int u{};
 		int v{};
 		for (int r = 0; r < 3; ++r) {
@@ -398,13 +403,12 @@ NODISCARD CONSTEXPR_17 SquareMatrix<T, 3> adjugate(
  * @return SquareMatrix<T,2> Matrix Inversa
  */
 template<class T>
-NODISCARD CONSTEXPR_17 SquareMatrix<T, 3> inverse(const SquareMatrix<T, 3> &M) {
+NODISCARD CONSTEXPR_17 SquareMatrix<T, 3> inverse(
+  const SquareMatrix<T, 3> &M) noexcept {
 	const auto d = det(M);
 	if (d == static_cast<T>(0)) { return {}; }
-
 	const auto a = 1 / d;
-	auto A = transpose(adjugate(M)) * a;
-	return A;
+	return transpose(adjugate(M)) * a;
 }
 
 /**
@@ -418,14 +422,10 @@ __     __        _
  * Vetores são definidos como Matriz com uma linha e N colunas.
  **/
 template<typename T, int N> struct Vector : public GenericMatrix<T, 1, N> {
-	CONSTEXPR_17 Vector(const GenericMatrix<T, 1, N> &other) noexcept {
-		this->elements = other.data();
-	}
+	using base = GenericMatrix<T, 1, N>;
+	CONSTEXPR_17 Vector(const GenericMatrix<T, 1, N> &m) noexcept : base(m) {}
 
-	CONSTEXPR_17 Vector(std::initializer_list<T> l) noexcept {
-		auto it = this->elements[0].begin();
-		for (auto &&i : l) { *it++ = i; }
-	}
+	CONSTEXPR_17 Vector(std::initializer_list<T> l) noexcept : base({ l }) {}
 
 	CONSTEXPR_17 operator alglin::array<T, N>() const {
 		return this->elements[0];
@@ -537,4 +537,6 @@ using Quat = alglin::Vector<double, 4>;
 // Matrix 3x3
 using Matrix3 = alglin::SquareMatrix<double, 3>;
 #undef CONSTEXPR_17
+#undef NODISCARD
+#undef MAYBE_UNUSED
 #endif
