@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <fcntl.h>
 #include <iomanip>
+#include <regex>
 #include <stdio.h>
 #include <string.h>
 #include <termios.h>
@@ -85,8 +86,8 @@ int main() {
 	std::smatch s_data;
 	std::cout << std::fixed << std::setprecision(8);
 
-	const Vec3 m_ref({ 1., -18.124316, -16.585069 });
-	const Vec3 a_ref({ 0.1, -0.4, -9.5 });
+	const Vec3 m_ref({ -4., -18., -20. });
+	const Vec3 a_ref({ 0.16, -0.4, -9.4 });
 
 	auto mag_sensor =
 	  Sensor({ 0., 1., 0. }, alglin::normalize(convertMagAxis * m_ref), .40);
@@ -97,11 +98,13 @@ int main() {
 		std::string line = serial.readline();
 		if (std::regex_match(line, s_data, data_regex)) {
 			std::vector<float> data{};
-			std::for_each(s_data.begin() + 1, s_data.end(), [&data](auto x) {
-				float f = std::atof(x.str().c_str());
-				//  std::cout << f << '\t';
-				data.push_back(f);
-			});
+			std::for_each(s_data.begin() + 1,
+			  s_data.end(),
+			  [&data](decltype(*s_data.begin()) x) {
+				  float f = std::atof(x.str().c_str());
+				  //  std::cout << f << '\t';
+				  data.push_back(f);
+			  });
 			acc_sensor.measure =
 			  alglin::normalize(Vec3({ data[0], data[1], data[2] }));
 			mag_sensor.measure =
