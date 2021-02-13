@@ -43,10 +43,17 @@
 ## Contents
 
 - **attdet** - The main Attitude Determination Library.
+- **attdet/benchmark** - A micro-benchmark of QUEST implementation.
 - **attdet/alglin** - Internal Linear Algebra Library.
 - **examples/quest** - QUaternion ESTimator algorithm demo.
 - **examples/serial** - QUEST demo with serial port data.
 - **misc** - Python implementation using Numpy
+
+## FlameGraph
+![flamgraph](./attdet/benchmark/output/flgraph.svg)
+A visual (click to zoom) representation of the execution time of each function in the algorithm. Note that the x axis does not inform the sequence of execution it is [ordered alphabetically](http://www.brendangregg.com/flamegraphs.html).
+
+ As you can see I need to work on the adjugate function. It does not use the usual algorithm - that uses the inverse - since I found one case where unusual, but valid, data produced a uninvertable matrix. I'll reconsider taking in to account the performance hit.  
 
 ## Environment and tools
 
