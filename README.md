@@ -51,9 +51,15 @@
 
 ## FlameGraph
 ![flamgraph](./attdet/benchmark/output/flgraph.svg)
-A visual (click to zoom) representation of the execution time of each function in the algorithm. Note that the x axis does not inform the sequence of execution it is [ordered alphabetically](http://www.brendangregg.com/flamegraphs.html).
+A visual representation of the execution time of each function in the algorithm. Note that the x axis does not inform the sequence of execution it is [ordered alphabetically](http://www.brendangregg.com/flamegraphs.html).
 
- As you can see I need to work on the adjugate function. It does not use the usual algorithm - that uses the inverse - since I found one case where unusual, but valid, data produced a uninvertable matrix. I'll reconsider taking in to account the performance hit.  
+ ~~As you can see~~ I need to work on the adjugate function. It does not use the usual algorithm - that uses the inverse - since I found one case where unusual, but valid, data produced a uninvertable matrix. I'll reconsider taking in to account the performance hit.  
+
+ (Update) - Changed `cofactor` function. Got around a 2.5x improvement. Matrix Multiplication is now the main optimization target.
+ But I since added the TRIAD benchmark and the speed difference seems to be
+ around 10x. I knew it would be around a 4x difference. But it seems that I still could shave off some 2x improvement. 
+
+
 
 ## Environment and tools
 
