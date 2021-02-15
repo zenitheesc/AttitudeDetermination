@@ -27,8 +27,7 @@ Matrix3 block_matrix(const Vec3 &a, const Vec3 &b, const Vec3 &c);
 enum class Rotations { X, Y, Z, None };
 Quat quest(const std::initializer_list<Sensor> &sensors);
 
-Matrix3 triad(const alglin::array<Sensor, 2> &sensors);
-
+Matrix3 triad( Sensor const& sensor, Sensor const& sensor2) ;
 Vec3 DCM2Euler(const Matrix3 &A);
 Vec3 Quat2Euler(const Quat &q);
 }// namespace attdet

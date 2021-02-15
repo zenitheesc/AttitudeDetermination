@@ -29,6 +29,7 @@
  * @copyright Copyright (c) 2021
  *
  */
+#include "alglin/alglin.hpp"
 #include <algorithm>
 #include <attdet/attdet.h>
 #include <numeric>
@@ -99,7 +100,7 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
 		const Vec3 Z(
 		  { (B[1][2] - B[2][1]), (B[2][0] - B[0][2]), (B[0][1] - B[1][0]) });
 
-		const auto k = alglin::trace(alglin::adjugate(S));
+		const auto k = alglin::trace(alglin::fast_adjugate(S));
 		const auto delta = alglin::det(S);
 		const auto ZT = alglin::transpose(Z);
 		const auto a = (sigma * sigma) - k;
@@ -120,7 +121,7 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
 		const auto identity = alglin::eye<double, 3>();
 		const Matrix3 Y = ((lambda + sigma) * identity) - S;
 		const Vec3 crp_ = alglin::transpose(alglin::inverse(Y) * ZT);
-		const auto w = 1 / (std::sqrt((crp_ * alglin::transpose(crp_))[0][0]));
+		const auto w = 1. / (std::sqrt((crp_ * alglin::transpose(crp_))[0][0]));
 		const Quat q({ w * crp_[0], w * crp_[1], w * crp_[2], w });
 		const auto dY = alglin::det(Y);
 
@@ -171,7 +172,7 @@ namespace {
 		const Vec3 Z(
 		  { (B[1][2] - B[2][1]), (B[2][0] - B[0][2]), (B[0][1] - B[1][0]) });
 
-		const auto k = alglin::trace(alglin::adjugate(S));
+		const auto k = alglin::trace(alglin::fast_adjugate(S));
 		const auto delta = alglin::det(S);
 		const auto ZT = alglin::transpose(Z);
 		const auto a = (sigma * sigma) - k;
@@ -207,7 +208,7 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
 	  [](const double prev, const Sensor &s) { return prev + s.weight; });
 
 	Matrix3 B{};
-	std::for_each(sensors.begin(), sensors.end(), [&B](const auto sensor) {
+	std::for_each(sensors.begin(), sensors.end(), [&B](const Sensor& sensor) {
 		B =
 		  B + (sensor.weight * alglin::outer(sensor.measure, sensor.reference));
 	});
@@ -247,13 +248,13 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
 
 #endif
 
-Matrix3 triad(const alglin::array<Sensor, 2> &sensors) {
+Matrix3 triad(const Sensor &sensor1, const Sensor &sensor2) {
 
-	auto t_1b = sensors[0].measure;
-	auto t_2b = alglin::cross(sensors[0].measure, sensors[1].measure);
+	auto t_1b = sensor1.measure;
+	auto t_2b = alglin::cross(sensor1.measure, sensor2.measure);
 	auto t_3b = alglin::cross(t_1b, t_2b);
-	auto t_1i = sensors[0].reference;
-	auto t_2i = alglin::cross(t_1i, sensors[1].reference);
+	auto t_1i = sensor1.reference;
+	auto t_2i = alglin::cross(t_1i, sensor2.reference);
 	auto t_3i = alglin::cross(t_1i, t_2i);
 	auto BbarT = block_matrix(t_1b, t_2b, t_3b);
 	auto NT = block_matrix(t_1i, t_2i, t_3i);
@@ -273,11 +274,11 @@ Vec3 Quat2Euler(const Quat &q) {
 	constexpr auto r = static_cast<double>(180.0 / 3.141592);
 	const auto phi = std::atan2(2.0f * (q[3] * q[0] - q[1] * q[2]),
 	  1.f - 2.0f * (q[0] * q[0] + q[1] * q[1]));
-	const auto tetha = std::asin(2.0f * (q[3] * q[1] + q[2] * q[0]));
+	const auto theta = std::asin(2.0f * (q[3] * q[1] + q[2] * q[0]));
 	const auto psi = std::atan2(2.0f * (q[3] * q[2] - q[0] * q[1]),
 	  1.f - 2.0f * (q[1] * q[1] + q[2] * q[2]));
 
-	return { r * phi, r * tetha, r * psi };
+	return { r * phi, r * theta, r * psi };
 }
 
 }// namespace attdet
