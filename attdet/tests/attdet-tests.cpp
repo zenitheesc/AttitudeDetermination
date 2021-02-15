@@ -78,7 +78,6 @@ TEST_CASE("TRIAD") {
 	Sensor sensor1({ -0.37852, -0.440970, -0.813798 }, { 0., 0., -1. }, .5);
 	sensor0.measure = sensor0.reference;
 	sensor1.measure = sensor1.reference;
-	Sensor a[] = { sensor0, sensor1 };
-	Matrix3 A = triad(a);
+	Matrix3 A = triad(sensor0, sensor1);
 	REQUIRE(A == alglin::eye<double, 3>());
 }
