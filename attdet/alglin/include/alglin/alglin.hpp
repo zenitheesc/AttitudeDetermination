@@ -396,6 +396,24 @@ NODISCARD CONSTEXPR_17 SquareMatrix<T, 3> adjugate(
 	return out;
 }
 
+template<class T>
+constexpr SquareMatrix<T, 3> cofactor(SquareMatrix<T, 3> const &M) {
+	return { { M[1][1] * M[2][2] - M[2][1] * M[1][2],
+			   M[2][1] * M[0][2] - M[0][1] * M[2][2],
+			   M[0][1] * M[1][2] - M[1][1] * M[0][2] },
+		{ M[1][2] * M[2][0] - M[2][2] * M[1][0],
+		  M[2][2] * M[0][0] - M[0][2] * M[2][0],
+		  M[0][2] * M[1][0] - M[1][2] * M[0][0] },
+		{ M[1][0] * M[2][1] - M[2][0] * M[1][1],
+		  M[2][0] * M[0][1] - M[0][0] * M[2][1],
+		  M[0][0] * M[1][1] - M[1][0] * M[0][1] } };
+}
+template<class T>
+constexpr SquareMatrix<T, 3> fast_adjugate(SquareMatrix<T, 3> const &M) {
+	return transpose(cofactor(M));
+}
+
+
 /**
  * @brief Calcula o inverso de uma Matriz 3x3
  *
@@ -407,8 +425,8 @@ NODISCARD CONSTEXPR_17 SquareMatrix<T, 3> inverse(
   const SquareMatrix<T, 3> &M) noexcept {
 	const auto d = det(M);
 	if (d == static_cast<T>(0)) { return {}; }
-	const auto a = 1 / d;
-	return transpose(adjugate(M)) * a;
+	const auto a = static_cast<T>(1.) / d;
+	return transpose(fast_adjugate(M)) * a;
 }
 
 /**
