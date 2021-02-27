@@ -15,9 +15,9 @@ template<class Type, int N> class array {
 		/* not "real" iterator */
 		// using iterator_category = std::forward_iterator_tag;
 
-		iterator(Type *ptr) : m_ptr(ptr) {}
+		constexpr iterator(Type *ptr) : m_ptr(ptr) {}
 
-		Type &operator*() const { return *m_ptr; }
+		constexpr Type &operator*() const { return *m_ptr; }
 		Type *operator->() { return m_ptr; }
 		iterator &operator++() {
 			m_ptr++;
@@ -28,10 +28,10 @@ template<class Type, int N> class array {
 			++(*this);
 			return tmp;
 		}
-		friend bool operator==(const iterator &a, const iterator &b) {
+		constexpr friend bool operator==(const iterator &a, const iterator &b) {
 			return a.m_ptr == b.m_ptr;
 		};
-		friend bool operator!=(const iterator &a, const iterator &b) {
+		constexpr friend bool operator!=(const iterator &a, const iterator &b) {
 			return a.m_ptr != b.m_ptr;
 		}
 
@@ -43,17 +43,13 @@ template<class Type, int N> class array {
 	Type elem[N];
 
   public:
-	array() = default;
-	array(Type *from) {
-		for (int i = 0; i < N; i++) { elem[i] = from[i]; }
-	}
-	CONSTEXPR_17 Type operator[](int i) const { return elem[i]; }
-	CONSTEXPR_17 Type &operator[](int i) { return elem[i]; }
+	constexpr array() = default;
+	array(Type from[]) : elem{ from } {}
+	constexpr Type operator[](int i) const { return elem[i]; }
+	Type &operator[](int i) { return elem[i]; }
 	Type *data() { return elem; }
-	CONSTEXPR_17 iterator begin() { return iterator(&elem[0]); }
-	CONSTEXPR_17 iterator end() {
-		return iterator(&elem[N]);
-	}// one pass the end
+	iterator begin() { return iterator(&elem[0]); }
+	iterator end() { return iterator(&elem[N]); }// one pass the end
 };
 }// namespace alglin
 #undef CONSTEXPR_17

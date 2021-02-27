@@ -1,5 +1,6 @@
 #if !defined(_ATT_DET_H_)
 #define _ATT_DET_H_
+#undef ALGLIN_PRECISION
 #define ALGLIN_PRECISION (1E-6)
 #include <alglin/alglin.hpp>
 #include <alglin/array.hpp>
@@ -14,7 +15,7 @@ struct Sensor {
 	 * @param reference_ Inertial frame value
 	 * @param weight_ Relative Weight of the Sensor in QUEST
 	 */
-	Sensor() = default;
+	constexpr Sensor() = default;
 	Sensor(const Vec3 &measure_, const Vec3 &reference_, double weight_)
 	  : measure(measure_), reference(reference_), weight(weight_) {}
 	Vec3 measure{};

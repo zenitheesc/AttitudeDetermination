@@ -59,7 +59,8 @@ Quat quest(const std::initializer_list<Sensor> &sensors) {
 	alglin::array<Quat, 4> candidateQuats{};
 	alglin::array<double, 4> distanceToSing{};
 	std::initializer_list<Rotations> rotations{
-		Rotations::X, Rotations::Y, Rotations::Z, Rotations::None
+		Rotations::X, Rotations::Y, Rotations::Z,
+         Rotations::None
 	};
 
 	double lambda{};
@@ -274,11 +275,11 @@ Vec3 Quat2Euler(const Quat &q) {
 	constexpr auto r = static_cast<double>(180.0 / 3.141592);
 	const auto phi = std::atan2(2.0f * (q[3] * q[0] - q[1] * q[2]),
 	  1.f - 2.0f * (q[0] * q[0] + q[1] * q[1]));
-	const auto theta = std::asin(2.0f * (q[3] * q[1] + q[2] * q[0]));
+	const auto tetha = std::asin(2.0f * (q[3] * q[1] + q[2] * q[0]));
 	const auto psi = std::atan2(2.0f * (q[3] * q[2] - q[0] * q[1]),
 	  1.f - 2.0f * (q[1] * q[1] + q[2] * q[2]));
 
-	return { r * phi, r * theta, r * psi };
+	return { r * phi, r * tetha, r * psi };
 }
 
 }// namespace attdet

@@ -92,26 +92,23 @@ namespace alglin {
 #if USE_FAST_INVSQRT
 namespace {
 
-	template<class U, class T> U bit_cast(T t) {
-		static_assert(
-		  sizeof(T) == sizeof(U), "Otherwise is undefined behavior");
-		static_assert(
-		  std::is_trivially_copyable<T>::value, "Needed for memcpy ");
-		static_assert(
-		  std::is_trivially_copyable<U>::value, "Needed for memcpy");
-		U u{};
-		std::memcpy(&u, &t, sizeof(T));
-		return u;
-	}
+template<class U, class T> U bit_cast(T t) {
+	static_assert(sizeof(T) == sizeof(U), "Otherwise is undefined behavior");
+	static_assert(std::is_trivially_copyable<T>::value, "Needed for memcpy ");
+	static_assert(std::is_trivially_copyable<U>::value, "Needed for memcpy");
+	U u{};
+	std::memcpy(&u, &t, sizeof(T));
+	return u;
+}
 
-	float fast_invsqrt(float x) {
-		int i = bit_cast<int>(x);
-		i = 0x5f3759df - (i >> 1);
-		float y = bit_cast<float>(i);
-		y = y * (1.5f - 0.5f * x * y * y);
-		y = y * (1.5f - 0.5f * x * y * y);
-		return y;
-	}
+inline float fast_invsqrt(float x) {
+	int i = bit_cast<int>(x);
+	i = 0x5f3759df - (i >> 1);
+	float y = bit_cast<float>(i);
+	y = y * (1.5f - 0.5f * x * y * y);
+	y = y * (1.5f - 0.5f * x * y * y);
+	return y;
+}
 
 }// namespace
 #endif
@@ -142,7 +139,7 @@ template<typename T, int N, int M> struct GenericMatrix {
 		}
 	}
 
-	CONSTEXPR_17 GenericMatrix() = default;
+	constexpr GenericMatrix() = default;
 
 	CONSTEXPR_17 GenericMatrix<T, N, M> operator+(
 	  const GenericMatrix<T, N, M> &rhs) const {
@@ -154,15 +151,15 @@ template<typename T, int N, int M> struct GenericMatrix {
 		}
 		return out;
 	}
-	CONSTEXPR_17 GenericMatrix<T, N, M> operator-(
+	constexpr GenericMatrix<T, N, M> operator-(
 	  const GenericMatrix<T, N, M> &rhs) const {
 		return (*this + (static_cast<T>(-1) * rhs));
 	}
-	CONSTEXPR_17 alglin::array<T, M> operator[](int i) const {
+	constexpr alglin::array<T, M> operator[](int i) const {
 		return elements[i];
 	}
 	CONSTEXPR_17 alglin::array<T, M> &operator[](int i) { return elements[i]; }
-	CONSTEXPR_17 alglin::array<alglin::array<T, M>, N> data() const {
+	constexpr alglin::array<alglin::array<T, M>, N> data() const {
 		return elements;
 	}
 };
@@ -196,7 +193,7 @@ CONSTEXPR_17 GenericMatrix<T, N, M> operator*(
 }
 
 template<class T, int N, int M>
-CONSTEXPR_17 GenericMatrix<T, N, M> operator*(
+constexpr GenericMatrix<T, N, M> operator*(
   T a, const GenericMatrix<T, N, M> &A) {
 	return A * a;
 }
@@ -213,6 +210,19 @@ CONSTEXPR_17 GenericMatrix<T, N, M> operator*(
 		}
 	}
 	return out;
+}
+template<class T>
+constexpr GenericMatrix<T, 3, 3> operator*(
+  const GenericMatrix<T, 3, 3> &A, const GenericMatrix<T, 3, 3> &B) noexcept {
+	return { { A[0][0] * B[0][0] + A[0][1] * B[1][0] + A[0][2] * B[2][0],
+			   A[0][0] * B[0][1] + A[0][1] * B[1][1] + A[0][2] * B[2][1],
+			   A[0][0] * B[0][2] + A[0][1] * B[1][2] + A[0][2] * B[2][2] },
+		{ A[1][0] * B[0][0] + A[1][1] * B[1][0] + A[1][2] * B[2][0],
+		  A[1][0] * B[0][1] + A[1][1] * B[1][1] + A[1][2] * B[2][1],
+		  A[1][0] * B[0][2] + A[1][1] * B[1][2] + A[1][2] * B[2][2] },
+		{ A[2][0] * B[0][0] + A[2][1] * B[1][0] + A[2][2] * B[2][0],
+		  A[2][0] * B[0][1] + A[2][1] * B[1][1] + A[2][2] * B[2][1],
+		  A[2][0] * B[0][2] + A[2][1] * B[1][2] + A[2][2] * B[2][2] } };
 }
 
 template<class T, int N, int M>
@@ -239,7 +249,6 @@ NODISCARD CONSTEXPR_17 GenericMatrix<T, M, N> transpose(
 	}
 	return out;
 }
-
 /**
  * @brief Calcula o Traço de A
  *
@@ -250,7 +259,7 @@ NODISCARD CONSTEXPR_17 GenericMatrix<T, M, N> transpose(
  */
 template<class T, int N, int M>
 NODISCARD CONSTEXPR_17 T trace(const GenericMatrix<T, N, M> &A) {
-	T sum = 0;
+	T sum = static_cast<T>(0);
 	for (int i = 0; i < M; ++i) { sum = sum + A[i][i]; }
 	return sum;
 }
@@ -288,7 +297,7 @@ NODISCARD CONSTEXPR_17 T det(MAYBE_UNUSED const SquareMatrix<T, N> &) {
  * @param A Matrix
  * @return CONSTEXPR_17 T determinante
  */
-template<class T> NODISCARD CONSTEXPR_17 T det(const SquareMatrix<T, 2> &A) {
+template<class T> NODISCARD constexpr T det(const SquareMatrix<T, 2> &A) {
 	return (A[0][0] * A[1][1]) - (A[0][1] * A[1][0]);
 }
 /**
@@ -297,7 +306,7 @@ template<class T> NODISCARD CONSTEXPR_17 T det(const SquareMatrix<T, 2> &A) {
  * @param A Matrix
  * @return CONSTEXPR_17 T determinante
  */
-template<class T> NODISCARD CONSTEXPR_17 T det(const SquareMatrix<T, 3> &A) {
+template<class T> NODISCARD constexpr T det(const SquareMatrix<T, 3> &A) {
 	return (A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1])
 			+ A[0][1] * (A[1][2] * A[2][0] - A[1][0] * A[2][2])
 			+ A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]));
@@ -337,16 +346,14 @@ template<class T>
 NODISCARD CONSTEXPR_17 SquareMatrix<T, 2> inverse(
   const SquareMatrix<T, 2> &M) noexcept {
 	const auto d = det(M);
+	if (d == static_cast<T>(0)) { return {}; }
 	auto A = M;
-	if (d) {
-		const auto a = 1 / d;
-		using std::swap;
-		swap(A[0][0], A[1][1]);
-		A[1][0] *= -1;
-		A[0][1] *= -1;
-		A = A * a;
-	}
-	return A;
+	const auto a = 1. / d;
+	using std::swap;
+	swap(A[0][0], A[1][1]);
+	A[1][0] *= -1;
+	A[0][1] *= -1;
+	return A * a;
 }
 
 /**
@@ -441,17 +448,15 @@ __     __        _
  **/
 template<typename T, int N> struct Vector : public GenericMatrix<T, 1, N> {
 	using base = GenericMatrix<T, 1, N>;
-	CONSTEXPR_17 Vector(const GenericMatrix<T, 1, N> &m) noexcept : base(m) {}
+	constexpr Vector(const GenericMatrix<T, 1, N> &m) noexcept : base(m) {}
 
-	CONSTEXPR_17 Vector(std::initializer_list<T> l) noexcept : base({ l }) {}
+	constexpr Vector(std::initializer_list<T> l) noexcept : base({ l }) {}
 
-	CONSTEXPR_17 operator alglin::array<T, N>() const {
-		return this->elements[0];
-	}
+	constexpr operator alglin::array<T, N>() const { return this->elements[0]; }
 
-	CONSTEXPR_17 Vector() = default;
-	CONSTEXPR_17 T operator[](int i) const { return this->elements[0][i]; }
-	CONSTEXPR_17 T &operator[](int i) { return this->elements[0][i]; }
+	constexpr Vector() = default;
+	constexpr T operator[](int i) const { return this->elements[0][i]; }
+	T &operator[](int i) { return this->elements[0][i]; }
 };
 
 /**
@@ -462,12 +467,11 @@ template<typename T, int N> struct Vector : public GenericMatrix<T, 1, N> {
  * @return CONSTEXPR_17 Vector<T, 3> u x v
  */
 template<class T>
-NODISCARD CONSTEXPR_17 Vector<T, 3> cross(
+NODISCARD constexpr Vector<T, 3> cross(
   const Vector<T, 3> &u, const Vector<T, 3> &v) {
-	Vector<T, 3> out({ { (-u[2] * v[1] + u[1] * v[2]) },
-	  { (u[2] * v[0] - u[0] * v[2]) },
-	  { (-u[1] * v[0] + u[0] * v[1]) } });
-	return out;
+	return { { (-u[2] * v[1] + u[1] * v[2]) },
+		{ (u[2] * v[0] - u[0] * v[2]) },
+		{ (-u[1] * v[0] + u[0] * v[1]) } };
 }
 
 /**
@@ -517,7 +521,7 @@ NODISCARD Vector<T, N> normalize(const Vector<T, N> &v) {
 #if USE_FAST_INVSQRT
 	const auto n = fast_invsqrt(v * v);
 #else
-	const double n = 1 / std::sqrt(v * v);
+	const double n = 1. / std::sqrt(v * v);
 #endif
 	auto out = v;
 	for (int i = 0; i < N; ++i) { out[i] = v[i] * n; }
@@ -525,10 +529,9 @@ NODISCARD Vector<T, N> normalize(const Vector<T, N> &v) {
 }
 
 template<class T, int N>
-NODISCARD CONSTEXPR_17 Vector<T, N> operator*(
+NODISCARD constexpr Vector<T, N> operator*(
   const SquareMatrix<T, N> &lhs, const Vector<T, N> &rhs) {
-	const auto vT = transpose(rhs);
-	return transpose(lhs * vT);
+	return transpose(lhs * transpose(rhs));
 }
 
 /**
