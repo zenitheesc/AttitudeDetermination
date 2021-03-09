@@ -32,6 +32,15 @@
 #include <termios.h>
 #include <unistd.h>
 
+#define REGEX_STR                                                       \
+	"([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.[" \
+	"\\d]+),"                                                           \
+	"([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.[" \
+	"\\d]+),"                                                           \
+	"([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.[" \
+	"\\d]+)."                                                           \
+	"\\D"
+
 
 using Poco::Net::WebSocket;
 using Poco::Net::HTTPRequestHandler;
@@ -83,10 +92,10 @@ template<int B = 255> struct SerialRead {
 
 /** WebSockets começam como HTTP normal */
 struct PageRequestHandler : public HTTPRequestHandler {
-	void handleRequest(HTTPServerRequest &r, HTTPServerResponse &response) {
-		response.setChunkedTransferEncoding(true);
-		response.setContentType("text/html");
-		auto &ostr = response.send();
+	void handleRequest(HTTPServerRequest &, HTTPServerResponse &res) override {
+		res.setChunkedTransferEncoding(true);
+		res.setContentType("text/html");
+		auto &ostr = res.send();
 		ostr << "<h1>WebSocket Only</h1>";
 	}
 };
@@ -95,22 +104,15 @@ struct PageRequestHandler : public HTTPRequestHandler {
 /** Contem o loop do socket */
 struct WebSocketRequestHandler : public HTTPRequestHandler {
 	void handleRequest(
-	  HTTPServerRequest &request, HTTPServerResponse &response) {
+	  HTTPServerRequest &request, HTTPServerResponse &response) override {
 		WebSocket ws(request, response);
 		std::cout << "WebSocket connection established.\n";
 		int flags{ 129 };
 		int n{};
 
-		const std::regex data_regex(
-		  "([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.["
-		  "\\d]+),"
-		  "([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.["
-		  "\\d]+),"
-		  "([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.[\\d]+),([\\-]?[\\d]+\\.["
-		  "\\d]+)."
-		  "\\D");
-
+		const std::regex data_regex(REGEX_STR);
 		static std::smatch s_data;
+        
 		const Vec3 m_ref({ -4., -18., -20. });
 		const Vec3 a_ref({ 0.16, -0.4, -9.4 });
 		using namespace attdet;
@@ -142,7 +144,7 @@ struct WebSocketRequestHandler : public HTTPRequestHandler {
 					ss << q[0] << ',' << q[1] << ',' << q[2] << ',' << q[3]
 					   << '\n';
 
-					std::cout << ss.str();
+					// std::cout << ss.str();
 					ws.sendFrame(ss.str().c_str(), ss.str().size());
 				}
 			}
@@ -155,10 +157,11 @@ struct WebSocketRequestHandler : public HTTPRequestHandler {
 
 /** Primeiro a receber o request e checa se é pra usar WebSockets */
 struct RequestHandlerFactory : public HTTPRequestHandlerFactory {
-	HTTPRequestHandler *createRequestHandler(const HTTPServerRequest &request) {
-		std::cout << "Request " << request.clientAddress().toString() << '\n';
-		if (request.find("Upgrade") != request.end()
-			&& Poco::icompare(request["Upgrade"], "websocket") == 0) {
+	HTTPRequestHandler *createRequestHandler(
+	  const HTTPServerRequest &req) override {
+		std::cout << "Request " << req.clientAddress().toString() << '\n';
+		if (req.find("Upgrade") != req.end()
+			&& Poco::icompare(req["Upgrade"], "websocket") == 0) {
 			return new WebSocketRequestHandler;
 		} else {
 			return new PageRequestHandler;
