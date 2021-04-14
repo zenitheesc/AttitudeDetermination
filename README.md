@@ -95,11 +95,9 @@ The `alglin` library is header-only so its not a direct target. But the `attdet`
 
 ## How to contribute
 
-1.  Fork.
-2.  Branch.
-3.  Commit.
-4.  Pull Request.
+We love when new people come and help us to improve our software! If you want to contribute to this project, check our Projects board and pick an idea to develop. When you finish coding, make a clear and descriptive pull request explaining your modifications.
 
+If you find any sort of problem or have a suggestion to the project, please write an issue and we will be pleased to help you!
 
 ## Benchmarks
 ![flamgraph](./attdet/benchmark/output/flgraph.svg)
